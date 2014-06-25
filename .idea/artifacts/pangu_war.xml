@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="pangu:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="pangu.war">
+      <element id="artifact" artifact-name="pangu:war exploded" />
+    </root>
+  </artifact>
+</component>
