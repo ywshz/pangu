@@ -49,7 +49,7 @@ pageContext.setAttribute("basePath",basePath);
             <div class="col-md-6">
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                        操作 <span class="caret"></span>
+                       	 操作 <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#">移动</a></li>
@@ -93,8 +93,8 @@ pageContext.setAttribute("basePath",basePath);
                                 <td>${file.modificationTime}</td>
                                 <td>${file.owner}</td>
                                 <td>
-                                    <button type="button" class="btn btn-default btn-xs">删除</button>
-                                    <button type="button" class="btn btn-default btn-xs">移动</button>
+                                    <button type="button" class="btn-delete-item btn btn-default btn-xs" data="${file.name}">删除</button>
+                                    <button type="button" class="btn-move-item btn btn-default btn-xs" data="${file.name}">移动</button>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -107,7 +107,36 @@ pageContext.setAttribute("basePath",basePath);
 	</div>
 	<!-- /.container -->
 
-
+	<!-- 移动文件/文件夹  Modal -->
+	<div class="modal fade" id="moveFileModal" tabindex="-1" role="dialog" aria-labelledby="moveFileModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-body">
+	        <form class="form-horizontal" role="form">
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">原路径</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" id="srcPathInput" disabled>
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputPassword3" class="col-sm-2 control-label">新路径</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" id="dstPathInput">
+			    </div>
+			  </div>
+			  <div class="form-group text-right">
+			    <div class="col-sm-offset-2 col-sm-10">
+			    	<button type="submit" class="btn btn-default">取消</button>
+			      	<button type="submit" class="btn btn-primary">移动</button>
+			    </div>
+			  </div>
+			</form>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+	
 	<!-- Bootstrap core JavaScript
     ================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
@@ -140,10 +169,31 @@ pageContext.setAttribute("basePath",basePath);
                 $("#enterFolderForm").submit();
 
             });
+            
+            $(".btn-delete-item").click(function(){
+            	var org = $("#current_path").val();
+            	
+            	if(window.confirm("确认删除吗?")){
+	                
+            		$.post("/hdfs_browse/delete.do",{path:org+"/"+$(this).attr("data")},function(res){
+            			if(res.success){
+            				self.location="/hdfs_browse/list.do?path="+org;
+            			}else{
+            				alert("删除失败,"+res.errorMessage);
+            			}
+            		});
+            	}
+            });
+            
+            $(".btn-move-item").click(function(){
+            	var org = $("#current_path").val();
+            	$("#srcPathInput").val(org+"/"+$(this).attr("data"));
+            	$("#moveFileModal").modal({backdrop:'static'},"show");
+            });
         }
     </script>
 
-    <form id="enterFolderForm" action="/hdfs_browse/list.do" method="post">
+    <form id="enterFolderForm" action="${path }/hdfs_browse/list.do" method="post">
         <input type="hidden" id="nextPath" name="path" value="">
     </form>
 

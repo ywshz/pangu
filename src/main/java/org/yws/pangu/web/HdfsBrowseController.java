@@ -1,17 +1,14 @@
 package org.yws.pangu.web;
 
-import org.apache.hadoop.fs.FileStatus;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.io.IOException;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.yws.pangu.domain.HdfsFile;
+import org.yws.pangu.domain.ResponseBean;
 import org.yws.pangu.service.HdfsService;
 import org.yws.pangu.service.impl.HdfsServiceImpl;
-
-import java.util.List;
 
 
 @RequestMapping(value = "/hdfs_browse")
@@ -24,7 +21,7 @@ public class HdfsBrowseController {
     @RequestMapping(value = "list.do")
     public String list(String path, Model model) {
 
-        if (path == null || path.trim().equals("/")) {
+        if (path == null || path.trim().equals("")) {
             path = "/";
             model.addAttribute("current_path", "");
         }else{
@@ -35,6 +32,25 @@ public class HdfsBrowseController {
 
 
         return "hdfs_browse";
+    }
+    
+    @RequestMapping(value = "delete.do")
+    public @ResponseBody ResponseBean delete(String path) {
+
+        if (path == null || path.trim().equals("")) {
+            return new ResponseBean(false,"Â·¾¶²»Õý³£");
+        }
+
+        try {
+			if(hdfsService.delete(path)){
+				return new ResponseBean(true,null);
+			}else{
+				return new ResponseBean(false,"É¾³ýÊ§°Ü,ÇëÖØÊÔ");
+			}
+		} catch (IOException e) {
+			return new ResponseBean(false,"É¾³ýÊ§°Ü,"+e.getMessage());
+		}
+
     }
 
 }

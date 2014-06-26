@@ -1,18 +1,21 @@
 package org.yws.pangu.service;
 
-import org.yws.pangu.domain.HdfsFile;
-
+import java.io.IOException;
 import java.util.List;
 
+import org.yws.pangu.domain.HdfsFile;
+
 /**
-* Created by ywszjut on 14-6-22.
-*/
+ * Created by ywszjut on 14-6-22.
+ */
 public interface HdfsService {
 
-    List<HdfsFile> getFiles(String path);
+	public List<HdfsFile> getFiles(String path);
 
-    HdfsFile get(String fileName);
+	public String get(String fileName, int size) throws IOException;
 
-    void delete(String path);
+	public boolean delete(String path) throws IOException;
+	
+	public boolean rename(String src,String dest) throws IOException;
 
 }
