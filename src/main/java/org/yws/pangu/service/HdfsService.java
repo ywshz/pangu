@@ -18,4 +18,5 @@ public interface HdfsService {
 	
 	public boolean rename(String src,String dest) throws IOException;
 
+
 }

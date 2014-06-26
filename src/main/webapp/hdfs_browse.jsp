@@ -52,19 +52,19 @@ pageContext.setAttribute("basePath",basePath);
                        	 操作 <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">移动</a></li>
+                        <li><a href="#" id="multi_move_link">移动</a></li>
                         <li><a href="#">删除</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default">返回上级</button>
+                <button type="button" id="goUpBtn" class="btn btn-default">返回上级</button>
             </div>
             <div class="col-md-6 text-right">
-                <form class="form-inline" role="form">
+                <form class="form-inline" action="${path }/hdfs_browse/list.do" method="post" role="form">
                     <div class="form-group">
                         <label class="sr-only col-md-4" for="hdfsPathInput">HDFS PATH</label>
-                        <input type="text" class="form-control" id="hdfsPathInput" placeholder="HDFS PATH">
+                        <input type="text" class="form-control" name="path" id="hdfsPathInput" placeholder="HDFS PATH" value="${current_path}">
                     </div>
-                    <button type="submit" class="btn btn-default">GO</button>
+                    <button type="submit" class="btn btn-default" id="goBtn">GO</button>
                 </form>
             </div>
         </div>
@@ -86,7 +86,7 @@ pageContext.setAttribute("basePath",basePath);
                         <tbody class="table-tbody">
                         <c:forEach items="${files}" var="file">
                             <tr>
-                                <td><input type="checkbox"></td>
+                                <td><input type="checkbox" name="fileCheck" value="${current_path}${file.name}"></td>
                                 <td><a href="#" class="item-name-href">${file.name}</a></td>
                                 <td>${file.type}</td>
                                 <td>${file.size}</td>
@@ -127,8 +127,8 @@ pageContext.setAttribute("basePath",basePath);
 			  </div>
 			  <div class="form-group text-right">
 			    <div class="col-sm-offset-2 col-sm-10">
-			    	<button type="submit" class="btn btn-default">取消</button>
-			      	<button type="submit" class="btn btn-primary">移动</button>
+			    	<button type="button" class="btn-move-cancel btn btn-default">取消</button>
+			      	<button type="button" class="btn-move-confirm btn btn-primary">移动</button>
 			    </div>
 			  </div>
 			</form>
@@ -164,7 +164,7 @@ pageContext.setAttribute("basePath",basePath);
             $(".item-name-href").click(function(target){
                 var org = $("#current_path").val();
 
-                $("#nextPath").val(org+"/"+this.innerText);
+                $("#nextPath").val(org+this.innerText);
 
                 $("#enterFolderForm").submit();
 
@@ -175,7 +175,7 @@ pageContext.setAttribute("basePath",basePath);
             	
             	if(window.confirm("确认删除吗?")){
 	                
-            		$.post("/hdfs_browse/delete.do",{path:org+"/"+$(this).attr("data")},function(res){
+            		$.post("/hdfs_browse/delete.do",{path:org+$(this).attr("data")},function(res){
             			if(res.success){
             				self.location="/hdfs_browse/list.do?path="+org;
             			}else{
@@ -187,10 +187,56 @@ pageContext.setAttribute("basePath",basePath);
             
             $(".btn-move-item").click(function(){
             	var org = $("#current_path").val();
-            	$("#srcPathInput").val(org+"/"+$(this).attr("data"));
+            	$("#srcPathInput").val(org+$(this).attr("data"));
+            	$("#dstPathInput").val(org+$(this).attr("data"));
             	$("#moveFileModal").modal({backdrop:'static'},"show");
             });
+            
+            $("#goBtn").click(function(){
+            	$("#nextPath").val($("#hdfsPathInput").val());
+            	$("#enterFolderForm").submit();
+            });
+            
+            $(".btn-move-confirm").click(function(){
+            	var src=$("#srcPathInput").val();
+            	var dst=$("#dstPathInput").val();
+            	if(src==dst){
+            		alert("输入不同路径");
+            	}else{
+            		$.post("/hdfs_browse/rename.do",{src:src,dst:dst},function(res){
+            			if(res.success){
+            				self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
+            			}else{
+            				alert("移动失败,"+res.errorMessage);
+            			}
+            		});
+            	}
+            });
+            $(".btn-move-cancel").click(function(){
+            	$("#moveFileModal").modal("hide");
+            });
+            
+            $("#goUpBtn").click(function(){
+            	$("#nextPath").val($("#parent_path").val());
+            	$("#enterFolderForm").submit();
+            });
+            
+            $("#multi_delete_link").click(function(){
+				$("input[name=fileCheck]:checked").each(function(i){
+	            	if(window.confirm("确认删除吗?")){
+		                
+	            		$.post("/hdfs_browse/delete.do",{path:org+$(this).attr("data")},function(res){
+	            			if(res.success){
+	            				self.location="/hdfs_browse/list.do?path="+org;
+	            			}else{
+	            				alert("删除失败,"+res.errorMessage);
+	            			}
+	            		});
+	            	}
+            	});
+            });
         }
+        
     </script>
 
     <form id="enterFolderForm" action="${path }/hdfs_browse/list.do" method="post">
@@ -198,5 +244,6 @@ pageContext.setAttribute("basePath",basePath);
     </form>
 
     <input type="hidden" id="current_path" value="${current_path}">
+    <input type="hidden" id="parent_path" value="${parent_path}">
 </body>
 </html>
