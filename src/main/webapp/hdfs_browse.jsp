@@ -53,7 +53,7 @@ pageContext.setAttribute("basePath",basePath);
                     </button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#" id="multi_move_link">移动</a></li>
-                        <li><a href="#">删除</a></li>
+                        <li><a href="#" id="multi_delete_link">删除</a></li>
                     </ul>
                 </div>
                 <button type="button" id="goUpBtn" class="btn btn-default">返回上级</button>
@@ -137,6 +137,32 @@ pageContext.setAttribute("basePath",basePath);
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
 	
+	
+	<!-- 移动文件/文件夹  Modal -->
+	<div class="modal fade" id="multiMoveFileModal" tabindex="-1" role="dialog" aria-labelledby="multiMoveFileModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-body">
+	        <form class="form-horizontal" role="form">
+			  <div class="form-group">
+			    <label for="inputPassword3" class="col-sm-2 control-label">目标目录</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" id="multiDstPathInput">
+			    </div>
+			  </div>
+			  <div class="form-group text-right">
+			    <div class="col-sm-offset-2 col-sm-10">
+			    	<button type="button" class="btn-multimove-cancel btn btn-default">取消</button>
+			      	<button type="button" class="btn-multimove-confirm btn btn-primary">移动</button>
+			    </div>
+			  </div>
+			</form>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+	
+	
 	<!-- Bootstrap core JavaScript
     ================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
@@ -216,25 +242,54 @@ pageContext.setAttribute("basePath",basePath);
             	$("#moveFileModal").modal("hide");
             });
             
+            $(".btn-multimove-confirm").click(function(){
+            	var pathes = "";
+				$("input[name=fileCheck]:checked").each(function(i){
+					pathes+=$(this).val()+",";
+            	});
+				
+				$.post("/hdfs_browse/multi_rename.do",{"pathes":pathes,"dst":$("#multiDstPathInput").val()},function(res){
+					alert(res.message);
+					self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
+				});
+            });
+            
+            $(".btn-multimove-cancel").click(function(){
+            	$("#multiMoveFileModal").modal("hide");
+            });
+            
+            
             $("#goUpBtn").click(function(){
             	$("#nextPath").val($("#parent_path").val());
             	$("#enterFolderForm").submit();
             });
             
-            $("#multi_delete_link").click(function(){
-				$("input[name=fileCheck]:checked").each(function(i){
-	            	if(window.confirm("确认删除吗?")){
-		                
-	            		$.post("/hdfs_browse/delete.do",{path:org+$(this).attr("data")},function(res){
-	            			if(res.success){
-	            				self.location="/hdfs_browse/list.do?path="+org;
-	            			}else{
-	            				alert("删除失败,"+res.errorMessage);
-	            			}
-	            		});
-	            	}
-            	});
+            $("#multi_move_link").click(function(){
+            	if($("input[name=fileCheck]:checked").length==0){
+            		alert("请先做选择");
+            	}else{
+	            	$("#multiMoveFileModal").modal("show");
+            	}
             });
+            
+            $("#multi_delete_link").click(function(){
+            	var cbs = $("input[name=fileCheck]:checked");
+            	if(cbs.length==0){
+            		alert("请先做选择");
+            	}else{
+	            	var pathes = "";
+					cbs.each(function(i){
+						pathes+=$(this).val()+",";
+	            	});
+					
+					$.post("/hdfs_browse/multi_delete.do",{"pathes":pathes},function(res){
+						alert(res.message);
+						self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
+					});
+            	}
+            });
+            
+            $(".form-horizontal").submit(function(){return false});
         }
         
     </script>

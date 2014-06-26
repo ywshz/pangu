@@ -62,6 +62,26 @@ public class HdfsBrowseController {
 
 	}
 
+	@RequestMapping(value = "multi_delete.do")
+	public @ResponseBody
+	ResponseBean multi_delete(@RequestParam(required=true) String pathes) {
+		int successCount=0;
+		int failCount=0;
+		try {
+			for(String path : pathes.split(",")){
+				if (hdfsService.delete(path)) {
+					successCount++;
+				} else {
+					failCount++;
+				}
+			}
+		} catch (Exception e) {
+			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
+		}
+		return new ResponseBean(true, "成功:" + successCount+"失败:"+failCount);
+	}
+	
+	
 	@RequestMapping(value = "rename.do")
 	public @ResponseBody
 	ResponseBean rename(@RequestParam(required = true) String src,
@@ -77,6 +97,25 @@ public class HdfsBrowseController {
 			return new ResponseBean(false, "移动失败," + e.getMessage());
 		}
 
+	}
+	
+	@RequestMapping(value = "multi_rename.do")
+	public @ResponseBody
+	ResponseBean multi_rename(@RequestParam(required=true) String pathes, String dst) {
+		int successCount=0;
+		int failCount=0;
+		try {
+			for(String path : pathes.split(",")){
+				if (hdfsService.rename(path,dst)) {
+					successCount++;
+				} else {
+					failCount++;
+				}
+			}
+		} catch (Exception e) {
+			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
+		}
+		return new ResponseBean(true, "成功:" + successCount+"失败:"+failCount);
 	}
 
 }
