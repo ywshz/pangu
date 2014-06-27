@@ -20,6 +20,7 @@ public class HdfsServiceImpl implements HdfsService {
 
 	private Configuration conf = null;
 	private FileSystem hdfs = null;
+	private static final int PREVIEW_READ_SIZE = 10240;
 
 	public HdfsServiceImpl() {
 		conf = new Configuration();
@@ -68,7 +69,28 @@ public class HdfsServiceImpl implements HdfsService {
 		return hdfs.rename(new Path(src), new Path(dst));
 	}
 
-	public static void main(String[] args) {
-		System.out.println(new HdfsServiceImpl().getFiles("/").get(0).getPath());
+	@Override
+	public boolean isFile(String path) throws IOException {
+		return hdfs.isFile(new Path(path));
+	}
+
+	@Override
+	public HdfsFile get(String path) throws IOException {
+		FileStatus fs = hdfs.getFileStatus(new Path(path));
+		HdfsFile hf = new HdfsFile();
+		hf.setModificationTime(DateUtils.format(fs.getModificationTime()));
+		hf.setPath(fs.getPath().toString());
+		hf.setName(fs.getPath().getName());
+		hf.setOwner(fs.getOwner());
+		hf.setSize(fs.getLen());
+		hf.setType(fs.isDir() ? "Dir" : "File");
+
+		byte[] data = new byte[PREVIEW_READ_SIZE];
+		FSDataInputStream fis = hdfs.open(new Path(path));
+		fis.read(data);
+
+		hf.setContent(new String(data));
+
+		return hf;
 	}
 }

@@ -12,11 +12,14 @@ public interface HdfsService {
 
 	public List<HdfsFile> getFiles(String path);
 
+	public boolean isFile(String path) throws IOException;
+
 	public String get(String fileName, int size) throws IOException;
 
-	public boolean delete(String path) throws IOException;
-	
-	public boolean rename(String src,String dest) throws IOException;
+	public HdfsFile get(String fileName) throws IOException;
 
+	public boolean delete(String path) throws IOException;
+
+	public boolean rename(String src, String dest) throws IOException;
 
 }

@@ -25,6 +25,7 @@ public class HdfsBrowseController {
 			path = "/";
 			model.addAttribute("current_path", "/");
 		} else {
+			
 			path = path.trim();
 			if (path.endsWith("/")) {
 				model.addAttribute("current_path", path);
@@ -37,8 +38,16 @@ public class HdfsBrowseController {
 
 		}
 
-		model.addAttribute("files", hdfsService.getFiles(path));
-
+		try {
+			if(hdfsService.isFile(path)){
+				model.addAttribute("file", hdfsService.get(path));
+				return "hdfs_file";
+			}else{
+				model.addAttribute("files", hdfsService.getFiles(path));
+			}
+		} catch (IOException e) {
+			return "error";
+		}
 		return "hdfs_browse";
 	}
 
@@ -64,11 +73,11 @@ public class HdfsBrowseController {
 
 	@RequestMapping(value = "multi_delete.do")
 	public @ResponseBody
-	ResponseBean multi_delete(@RequestParam(required=true) String pathes) {
-		int successCount=0;
-		int failCount=0;
+	ResponseBean multi_delete(@RequestParam(required = true) String pathes) {
+		int successCount = 0;
+		int failCount = 0;
 		try {
-			for(String path : pathes.split(",")){
+			for (String path : pathes.split(",")) {
 				if (hdfsService.delete(path)) {
 					successCount++;
 				} else {
@@ -78,10 +87,9 @@ public class HdfsBrowseController {
 		} catch (Exception e) {
 			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
 		}
-		return new ResponseBean(true, "成功:" + successCount+"失败:"+failCount);
+		return new ResponseBean(true, "成功:" + successCount + "失败:" + failCount);
 	}
-	
-	
+
 	@RequestMapping(value = "rename.do")
 	public @ResponseBody
 	ResponseBean rename(@RequestParam(required = true) String src,
@@ -98,15 +106,15 @@ public class HdfsBrowseController {
 		}
 
 	}
-	
+
 	@RequestMapping(value = "multi_rename.do")
 	public @ResponseBody
-	ResponseBean multi_rename(@RequestParam(required=true) String pathes, String dst) {
-		int successCount=0;
-		int failCount=0;
+	ResponseBean multi_rename(@RequestParam(required = true) String pathes, String dst) {
+		int successCount = 0;
+		int failCount = 0;
 		try {
-			for(String path : pathes.split(",")){
-				if (hdfsService.rename(path,dst)) {
+			for (String path : pathes.split(",")) {
+				if (hdfsService.rename(path, dst)) {
 					successCount++;
 				} else {
 					failCount++;
@@ -115,7 +123,7 @@ public class HdfsBrowseController {
 		} catch (Exception e) {
 			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
 		}
-		return new ResponseBean(true, "成功:" + successCount+"失败:"+failCount);
+		return new ResponseBean(true, "成功:" + successCount + "失败:" + failCount);
 	}
 
 }
