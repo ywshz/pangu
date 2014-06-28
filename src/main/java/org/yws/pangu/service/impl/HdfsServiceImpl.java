@@ -89,8 +89,13 @@ public class HdfsServiceImpl implements HdfsService {
 		FSDataInputStream fis = hdfs.open(new Path(path));
 		fis.read(data);
 
-		hf.setContent(new String(data));
+		String d = new String(data);
+		d=d.replaceAll("<", "&lt;");
+		d=d.replaceAll(">", "&gt;");
+		d=d.replaceAll("$", "&amp");
+		hf.setContent(d);
 
 		return hf;
 	}
+	
 }
