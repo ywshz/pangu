@@ -289,7 +289,7 @@ pageContext.setAttribute("basePath",basePath);
             	}
             });
             
-            $(".form-horizontal").submit(function(){return false});
+            $(".form-horizontal").submit(function(){return false;});
         }
         
     </script>
