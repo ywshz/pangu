@@ -1,0 +1,15 @@
+body {
+	padding-top: 50px;
+}
+
+#preview-div {
+	margin-top: 20px;
+}
+
+#btns-div {
+	margin-bottom: 10px;
+}
+
+.panel-body {
+	word-break: break-word; /* 文本行的任意字内断开 */
+}
