@@ -82,7 +82,9 @@ pageContext.setAttribute("basePath",basePath);
 						<div class="panel panel-default console-panel">
 							<div class="panel-heading">运行日志</div>
 							<div class="panel-body">
-								123
+								<div id="console-div">
+									123
+								</div>
 							</div>
 						</div>
 					</div>

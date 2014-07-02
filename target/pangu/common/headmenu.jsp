@@ -10,7 +10,7 @@
 					class="icon-bar"></span> <span class="icon-bar"></span> <span
 					class="icon-bar"></span>
 			</button>
-			<a class="navbar-brand" href="${path}/">Pangu</a>
+			<a class="navbar-brand" href="${path}/">盘古</a>
 		</div>
 		<div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav">
@@ -19,7 +19,12 @@
 					 -->
 				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/hdfs_browse.jsp">HDFS文件管理</a></li>
-
+				<li class="${page=='topics'?active:'' }"><a
+					href="${path }/cloud_test.jsp">云测试</a></li>
+				<li class="${page=='topics'?active:'' }"><a
+					href="${path }/developing.html">云调度</a></li>
+				<li class="${page=='topics'?active:'' }"><a
+					href="${path }/developing.html">云统计</a></li>
 			</ul>
 		</div>
 		<!--/.nav-collapse -->
