@@ -23,6 +23,15 @@ pageContext.setAttribute("basePath",basePath);
 
 <link href="<%=path %>/css/cloud_test.css" rel="stylesheet">
 <link href="<%=path %>/jstree/themes/default/style.min.css"rel="stylesheet" />
+
+<style type="text/css">
+
+#tree { float:left; min-width:319px; border-right:1px solid silver; overflow:auto; padding:0px 0; }
+
+	#tree .folder { background:url('./img/file_sprite.png') right bottom no-repeat; }
+	#tree .file { background:url('./img/file_sprite.png') 0 0 no-repeat; }
+
+</style>
 <!-- Just for debugging purposes. Don't actually copy this line! -->
 <!--[if lt IE 9]><script src="${path }/bootstrap/js/ie8-responsive-file-warning.js"></script><![endif]-->
 
@@ -47,8 +56,8 @@ pageContext.setAttribute("basePath",basePath);
 			        		<ul>
 							    <li>个人文档
 							      <ul>
-							        <li id="child_node1">1.sh</li>
-							        <li id="child_nod2e">1.sh</li>
+							        <li id="child_node1" type="file">1.sh</li>
+							        <li id="child_nod2e" rel="file">1.sh</li>
 							        <li id="child_node3">1.sh</li>
 							        <li id="child_node4">1.sh</li>
 							      </ul>
@@ -65,6 +74,11 @@ pageContext.setAttribute("basePath",basePath);
 					
 						<div>
 							<div id="run-toolbar-div">
+							
+								<button type="button" class="btn btn-default" id="public-var-btn">
+									<span class="glyphicon glyphicon-floppy-disk"></span>保存
+								</button>
+								
 								<button type="button" class="btn btn-primary" id="run-btn">
 									 <span class="glyphicon glyphicon-play"></span>运行
 								</button>
@@ -106,7 +120,36 @@ pageContext.setAttribute("basePath",basePath);
     <script type="text/javascript">
         $(document).ready(init);
         function init(){
-        	$('#tree').jstree();
+        	$('#tree').jstree({
+        		"core":{
+        			data:{
+        				url:'/files/list.do',
+        				data:function(node){
+        					return {"id":node.id};
+        				}
+        			}
+        		},
+        		"contextmenu":{
+        			"items":{
+        				"NewFolder":{
+        					label:"新文件夹",
+        					action:function(){alert(1);}
+        				},
+        				"NewFile":{
+        					label:"新文件",
+        					action:function(){alert(1);}
+        				}
+        			}
+        		},
+        		'types' : {
+					'default' : { 'icon' : 'glyphicon glyphicon-folder-open' },
+					'file' : { 'icon' : 'glyphicon glyphicon-file' }
+				},
+        		"plugins" : [
+        		             "contextmenu", "dnd",  "types"
+        		           ]
+        	});
+        	$("#tree").jstree("toggle_node", $("#root").parent());
         }
     </script>
 
