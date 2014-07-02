@@ -25,7 +25,7 @@ public class HdfsBrowseController {
 			path = "/";
 			model.addAttribute("current_path", "/");
 		} else {
-			
+
 			path = path.trim();
 			if (path.endsWith("/")) {
 				model.addAttribute("current_path", path);
@@ -56,17 +56,17 @@ public class HdfsBrowseController {
 	ResponseBean delete(String path) {
 
 		if (path == null || path.trim().equals("")) {
-			return new ResponseBean(false, "Â·¾¶²»Õı³£");
+			return new ResponseBean(false, "è·¯å¾„ä¸æ­£å¸¸");
 		}
 
 		try {
 			if (hdfsService.delete(path)) {
 				return new ResponseBean(true, null);
 			} else {
-				return new ResponseBean(false, "É¾³ıÊ§°Ü,ÇëÖØÊÔ");
+				return new ResponseBean(false, "åˆ é™¤å¤±è´¥,è¯·é‡è¯•");
 			}
 		} catch (IOException e) {
-			return new ResponseBean(false, "É¾³ıÊ§°Ü," + e.getMessage());
+			return new ResponseBean(false, "åˆ é™¤å¤±è´¥," + e.getMessage());
 		}
 
 	}
@@ -85,9 +85,9 @@ public class HdfsBrowseController {
 				}
 			}
 		} catch (Exception e) {
-			return new ResponseBean(false, "É¾³ı·¢ÉúÒì³£,ÒÑ³É¹¦" + successCount);
+			return new ResponseBean(false, "åˆ é™¤å‘ç”Ÿå¼‚å¸¸,å·²æˆåŠŸ" + successCount);
 		}
-		return new ResponseBean(true, "³É¹¦:" + successCount + "Ê§°Ü:" + failCount);
+		return new ResponseBean(true, "æˆåŠŸ:" + successCount + "å¤±è´¥:" + failCount);
 	}
 
 	@RequestMapping(value = "rename.do")
@@ -99,10 +99,10 @@ public class HdfsBrowseController {
 			if (hdfsService.rename(src, dst)) {
 				return new ResponseBean(true, null);
 			} else {
-				return new ResponseBean(false, "ÒÆ¶¯Ê§°Ü,ÇëÖØÊÔ");
+				return new ResponseBean(false, "ç§»åŠ¨å¤±è´¥,è¯·é‡è¯•");
 			}
 		} catch (Exception e) {
-			return new ResponseBean(false, "ÒÆ¶¯Ê§°Ü," + e.getMessage());
+			return new ResponseBean(false, "ç§»åŠ¨å¤±è´¥," + e.getMessage());
 		}
 
 	}
@@ -121,9 +121,9 @@ public class HdfsBrowseController {
 				}
 			}
 		} catch (Exception e) {
-			return new ResponseBean(false, "É¾³ı·¢ÉúÒì³£,ÒÑ³É¹¦" + successCount);
+			return new ResponseBean(false, "åˆ é™¤å‘ç”Ÿå¼‚å¸¸,å·²æˆåŠŸ" + successCount);
 		}
-		return new ResponseBean(true, "³É¹¦:" + successCount + "Ê§°Ü:" + failCount);
+		return new ResponseBean(true, "æˆåŠŸ:" + successCount + "å¤±è´¥:" + failCount);
 	}
 
 }
