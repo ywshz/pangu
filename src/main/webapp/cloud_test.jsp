@@ -91,7 +91,7 @@ pageContext.setAttribute("basePath",basePath);
 									<span class="glyphicon glyphicon-wrench"></span>公共变量
 								</button>
 							</div>
-							<textarea class="form-control" rows="16"></textarea>
+							<textarea id="editbox" class="form-control" rows="16"></textarea>
 						</div>
 						<div class="panel panel-default console-panel">
 							<div class="panel-heading">运行日志</div>
@@ -130,16 +130,7 @@ pageContext.setAttribute("basePath",basePath);
         			}
         		},
         		"contextmenu":{
-        			"items":{
-        				"NewFolder":{
-        					label:"新文件夹",
-        					action:function(){alert(1);}
-        				},
-        				"NewFile":{
-        					label:"新文件",
-        					action:function(){alert(1);}
-        				}
-        			}
+        			"items":customMenu
         		},
         		'types' : {
 					'default' : { 'icon' : 'glyphicon glyphicon-folder-open' },
@@ -149,7 +140,40 @@ pageContext.setAttribute("basePath",basePath);
         		             "contextmenu", "dnd",  "types"
         		           ]
         	});
-        	$("#tree").jstree("toggle_node", $("#root").parent());
+        	
+        	
+        	$("#run-btn").click(runBtnClick);
+        }
+        
+        function customMenu(node) {
+            // The default set of all items
+            var items = {
+    				newFolder:{
+    					label:"新文件夹",
+    					action:function(){alert(1);}
+    				},
+    				newFile:{
+    					label:"新文件",
+    					action:function(){alert(1);}
+    				},
+    				deleteFile:{
+    					label:"删除",
+    					action:function(){alert(1);}
+    				}
+    		};
+
+            if (node.type=="file") {
+            	items.newFolder._disabled = true;
+            	items.newFile._disabled = true;
+            }else{
+            	items.newFolder._disabled = false;
+            	items.newFile._disabled = false;
+            }
+            return items;
+        }
+        
+        function runBtnClick(){
+        	$.post("/files/run.do",{content:$("#editbox").val()});
         }
     </script>
 
