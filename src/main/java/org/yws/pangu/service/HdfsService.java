@@ -18,7 +18,7 @@ public interface HdfsService {
 
 	public HdfsFile get(String fileName) throws IOException;
 
-	public boolean delete(String path) throws IOException;
+//	public boolean delete(String path) throws IOException;
 
 	public boolean rename(String src, String dest) throws IOException;
 

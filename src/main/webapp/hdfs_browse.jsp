@@ -58,7 +58,9 @@ pageContext.setAttribute("basePath",basePath);
                     </button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#" id="multi_move_link">移动</a></li>
+                        <!-- 
                         <li><a href="#" id="multi_delete_link">删除</a></li>
+                         -->
                     </ul>
                 </div>
                 <button type="button" id="goUpBtn" class="btn btn-default">返回上级</button>
@@ -98,7 +100,9 @@ pageContext.setAttribute("basePath",basePath);
                                 <td>${file.modificationTime}</td>
                                 <td>${file.owner}</td>
                                 <td>
+                                	<!-- 
                                     <button type="button" class="btn-delete-item btn btn-default btn-xs" data="${file.name}">删除</button>
+                                	 -->
                                     <button type="button" class="btn-move-item btn btn-default btn-xs" data="${file.name}">移动</button>
                                 </td>
                             </tr>
@@ -201,6 +205,7 @@ pageContext.setAttribute("basePath",basePath);
 
             });
             
+            /*
             $(".btn-delete-item").click(function(){
             	var org = $("#current_path").val();
             	
@@ -215,7 +220,7 @@ pageContext.setAttribute("basePath",basePath);
             		});
             	}
             });
-            
+            */
             $(".btn-move-item").click(function(){
             	var org = $("#current_path").val();
             	$("#srcPathInput").val(org+$(this).attr("data"));
@@ -277,6 +282,7 @@ pageContext.setAttribute("basePath",basePath);
             	}
             });
             
+            /*
             $("#multi_delete_link").click(function(){
             	var cbs = $("input[name=fileCheck]:checked");
             	if(cbs.length==0){
@@ -293,7 +299,7 @@ pageContext.setAttribute("basePath",basePath);
 					});
             	}
             });
-            
+            */
             $(".form-horizontal").submit(function(){return false;});
         }
         

@@ -59,10 +59,11 @@ public class HdfsServiceImpl implements HdfsService {
 		return new String(bts);
 	}
 
-	@Override
-	public boolean delete(String path) throws IOException {
-		return hdfs.delete(new Path(path), true);
-	}
+//	@Override
+//	public boolean delete(String path) throws IOException {
+////		return hdfs.delete(new Path(path), true);
+//		return hdfs.rename(new Path(path), new Path("/Trash"+path)); 
+//	}
 
 	@Override
 	public boolean rename(String src, String dst) throws IOException {

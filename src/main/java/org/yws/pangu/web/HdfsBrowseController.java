@@ -51,44 +51,44 @@ public class HdfsBrowseController {
 		return "hdfs_browse";
 	}
 
-	@RequestMapping(value = "delete.do")
-	public @ResponseBody
-	ResponseBean delete(String path) {
+//	@RequestMapping(value = "delete.do")
+//	public @ResponseBody
+//	ResponseBean delete(String path) {
+//
+//		if (path == null || path.trim().equals("")) {
+//			return new ResponseBean(false, "路径不正常");
+//		}
+//
+//		try {
+//			if (hdfsService.delete(path)) {
+//				return new ResponseBean(true, null);
+//			} else {
+//				return new ResponseBean(false, "删除失败,请重试");
+//			}
+//		} catch (IOException e) {
+//			return new ResponseBean(false, "删除失败," + e.getMessage());
+//		}
+//
+//	}
 
-		if (path == null || path.trim().equals("")) {
-			return new ResponseBean(false, "路径不正常");
-		}
-
-		try {
-			if (hdfsService.delete(path)) {
-				return new ResponseBean(true, null);
-			} else {
-				return new ResponseBean(false, "删除失败,请重试");
-			}
-		} catch (IOException e) {
-			return new ResponseBean(false, "删除失败," + e.getMessage());
-		}
-
-	}
-
-	@RequestMapping(value = "multi_delete.do")
-	public @ResponseBody
-	ResponseBean multi_delete(@RequestParam(required = true) String pathes) {
-		int successCount = 0;
-		int failCount = 0;
-		try {
-			for (String path : pathes.split(",")) {
-				if (hdfsService.delete(path)) {
-					successCount++;
-				} else {
-					failCount++;
-				}
-			}
-		} catch (Exception e) {
-			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
-		}
-		return new ResponseBean(true, "成功:" + successCount + "失败:" + failCount);
-	}
+//	@RequestMapping(value = "multi_delete.do")
+//	public @ResponseBody
+//	ResponseBean multi_delete(@RequestParam(required = true) String pathes) {
+//		int successCount = 0;
+//		int failCount = 0;
+//		try {
+//			for (String path : pathes.split(",")) {
+//				if (hdfsService.delete(path)) {
+//					successCount++;
+//				} else {
+//					failCount++;
+//				}
+//			}
+//		} catch (Exception e) {
+//			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
+//		}
+//		return new ResponseBean(true, "成功:" + successCount + "失败:" + failCount);
+//	}
 
 	@RequestMapping(value = "rename.do")
 	public @ResponseBody
@@ -121,7 +121,7 @@ public class HdfsBrowseController {
 				}
 			}
 		} catch (Exception e) {
-			return new ResponseBean(false, "删除发生异常,已成功" + successCount);
+			return new ResponseBean(false, "重命名发生异常,已成功" + successCount);
 		}
 		return new ResponseBean(true, "成功:" + successCount + "失败:" + failCount);
 	}
