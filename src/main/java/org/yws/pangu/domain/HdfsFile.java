@@ -1,5 +1,8 @@
 package org.yws.pangu.domain;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
 /**
  * Created by ywszjut on 14-6-22.
  */
@@ -9,6 +12,7 @@ public class HdfsFile {
 	private String name;
 	private String type;
 	private long size;
+	private String sizeInM;
 	private String owner;
 	private String modificationTime;
 	private String content;
@@ -69,4 +73,15 @@ public class HdfsFile {
 	public void setContent(String content) {
 		this.content = content;
 	}
+
+	public String getSizeInM() {
+		BigDecimal bg = new BigDecimal(size);
+		bg = bg.divide(new BigDecimal(1024 * 1024));
+		DecimalFormat df = new DecimalFormat("#.00M");
+		return df.format(bg);
+	}
+
+	public void setSizeInM(String sizeInM) {
+	}
+
 }
