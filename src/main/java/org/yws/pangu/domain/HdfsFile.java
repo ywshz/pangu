@@ -75,10 +75,15 @@ public class HdfsFile {
 	}
 
 	public String getSizeInM() {
-		BigDecimal bg = new BigDecimal(size);
-		bg = bg.divide(new BigDecimal(1024 * 1024));
-		DecimalFormat df = new DecimalFormat("#.00M");
-		return df.format(bg);
+		if("File".equals(this.type)){
+			BigDecimal bg = new BigDecimal(size);
+			bg = bg.divide(new BigDecimal(1024 * 1024));
+			DecimalFormat df = new DecimalFormat("#.00M");
+			return df.format(bg);
+		}else{
+			return "";
+		}
+		
 	}
 
 	public void setSizeInM(String sizeInM) {
