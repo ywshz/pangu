@@ -96,8 +96,8 @@ pageContext.setAttribute("basePath",basePath);
 						<div class="panel panel-default console-panel">
 							<div class="panel-heading">运行日志</div>
 							<div class="panel-body">
-								<div id="console-div">
-									123
+								<div id="console-div" style='height:200px;overflow: auto;'>
+									<p id="log-p"></p>
 								</div>
 							</div>
 						</div>
@@ -174,6 +174,23 @@ pageContext.setAttribute("basePath",basePath);
         
         function runBtnClick(){
         	$.post("/files/run.do",{content:$("#editbox").val()});
+        	
+        	var timeId = setInterval(function(){
+        	    $.post("/files/getlog.do",{jobId:1},function(res){
+        	    	if(res.status=="END"){
+        	    		clearTimeout(timeId);
+        	    	}
+        	    	var cr = $("#log-p").html();
+        	    	var nr = res.log.replace(/\n/g, "<br>");
+        	    	if(cr!=nr){
+        	    		$("#log-p").html(nr);
+		        	    document.getElementById('console-div').scrollTop=document.getElementById('console-div').scrollHeight;
+        	    	}
+        	    });        
+        	    
+        	    
+        	},1000);
+        	
         }
     </script>
 
