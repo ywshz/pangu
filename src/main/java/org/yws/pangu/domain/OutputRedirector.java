@@ -26,7 +26,7 @@ public class OutputRedirector extends Thread {
                 MemoryHelper.LOG_MAP.get("1").append("PANGU> "+line+"\n");
             }
         } catch (IOException ioE) {
-
+        	ioE.printStackTrace();
         }
     }
 }

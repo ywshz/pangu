@@ -9,28 +9,28 @@ public class FileWebBean implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private String id;
+	private Integer id;
 	private StateWebBean state;
 	private String text;
 	private String type;
 
-	public FileWebBean(String id, String text, String type) {
+	public FileWebBean(Integer integer, String text, boolean b) {
 		this.state = new StateWebBean(true, false, false);
-		this.id = id;
+		this.id = integer;
 		this.text = text;
-		this.type = type;
+		this.type = b ? "folder" : "file";
 	}
 
-	public FileWebBean(String id, String text) {
+	public FileWebBean(Integer id, String text) {
 		this.id = id;
 		this.text = text;
 	}
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

@@ -2,22 +2,43 @@ package org.yws.pangu.domain;
 
 import java.util.Date;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+@Entity
+@Table(name = "pangu_file")
 public class FileDescriptor {
 	private static final long serialVersionUID = 1L;
-	private String id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Integer id;
+	@Column
 	private String name;
+	@Column
 	private String owner;
-	private String parent;
+	@Column
+	private Integer parent;
+	@Column
+	private Short type;
+	@Transient
 	private boolean folder;
+	@Column
 	private String content;
+	@Column(name = "gmt_create")
 	private Date gmtCreate = new Date();
+	@Column(name = "gmt_modified")
 	private Date gmtModified = new Date();
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -37,16 +58,16 @@ public class FileDescriptor {
 		this.owner = owner;
 	}
 
-	public String getParent() {
+	public Integer getParent() {
 		return parent;
 	}
 
-	public void setParent(String parent) {
+	public void setParent(Integer parent) {
 		this.parent = parent;
 	}
 
 	public boolean isFolder() {
-		return folder;
+		return this.type == FileBean.FOLDER;
 	}
 
 	public void setFolder(boolean folder) {
@@ -75,5 +96,13 @@ public class FileDescriptor {
 
 	public void setGmtModified(Date gmtModified) {
 		this.gmtModified = gmtModified;
+	}
+
+	public Short getType() {
+		return type;
+	}
+
+	public void setType(Short type) {
+		this.type = type;
 	}
 }

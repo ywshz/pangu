@@ -125,6 +125,8 @@ pageContext.setAttribute("basePath",basePath);
         			data:{
         				url:'/files/list.do',
         				data:function(node){
+        					if(node.parent==null)
+        						return null;
         					return {"id":node.id};
         				}
         			}
@@ -141,6 +143,18 @@ pageContext.setAttribute("basePath",basePath);
         		           ]
         	});
         	
+        	$('#tree')
+        	  // listen for event
+        	  .on('select_node.jstree', function (e, data) {
+        		  if(data.node.parent=="#"){
+        			  $("#tree").toggle_node(data.node);
+        		  }
+        	    if(data.node.type=='folder'){
+        	    	$("#tree").open_node(data.node);
+        	    }else if(data.node.type="file"){
+        	    	
+        	    }
+        	});
         	
         	$("#run-btn").click(runBtnClick);
         }

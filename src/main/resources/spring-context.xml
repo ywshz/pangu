@@ -20,7 +20,5 @@ http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 	<bean id="schedulerFactory" class="org.quartz.impl.StdSchedulerFactory">
 	</bean>
 
-    <!--
  	<import resource="spring-db.xml" />
- 	-->
 </beans>
