@@ -44,24 +44,31 @@ pageContext.setAttribute("basePath",basePath);
 	<%@ include file="common/headmenu.jsp"%> 
 
 	<div class="container">
-
-        <div class="row action-div">
-            <div class="col-md-6">
+		
+		<div class="row action-div">
+			<div class="col-md-12">
+				当前路径:${current_path} <hr/>
+			</div>
+		</div>
+        <div class="row ">
+            <div class="col-md-4">
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                        	 操作 <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#" id="multi_move_link">移动</a></li>
+                        <!-- 
                         <li><a href="#" id="multi_delete_link">删除</a></li>
+                         -->
                     </ul>
                 </div>
                 <button type="button" id="goUpBtn" class="btn btn-default">返回上级</button>
             </div>
-            <div class="col-md-6 text-right">
+            <div class="col-md-8 text-right">
                 <form class="form-inline" action="${path }/hdfs_browse/list.do" method="post" role="form">
                     <div class="form-group">
-                        <label class="sr-only col-md-4" for="hdfsPathInput">HDFS PATH</label>
+                        <label class="sr-only col-md-7" for="hdfsPathInput">HDFS PATH</label>
                         <input type="text" class="form-control" name="path" id="hdfsPathInput" placeholder="HDFS PATH" value="${current_path}">
                     </div>
                     <button type="submit" class="btn btn-default" id="goBtn">GO</button>
@@ -89,11 +96,13 @@ pageContext.setAttribute("basePath",basePath);
                                 <td><input type="checkbox" name="fileCheck" value="${current_path}${file.name}"></td>
                                 <td><a href="#" class="item-name-href">${file.name}</a></td>
                                 <td>${file.type}</td>
-                                <td>${file.size}</td>
+                                <td>${file.sizeInM}</td>
                                 <td>${file.modificationTime}</td>
                                 <td>${file.owner}</td>
                                 <td>
+                                	<!-- 
                                     <button type="button" class="btn-delete-item btn btn-default btn-xs" data="${file.name}">删除</button>
+                                	 -->
                                     <button type="button" class="btn-move-item btn btn-default btn-xs" data="${file.name}">移动</button>
                                 </td>
                             </tr>
@@ -196,6 +205,7 @@ pageContext.setAttribute("basePath",basePath);
 
             });
             
+            /*
             $(".btn-delete-item").click(function(){
             	var org = $("#current_path").val();
             	
@@ -210,7 +220,7 @@ pageContext.setAttribute("basePath",basePath);
             		});
             	}
             });
-            
+            */
             $(".btn-move-item").click(function(){
             	var org = $("#current_path").val();
             	$("#srcPathInput").val(org+$(this).attr("data"));
@@ -272,6 +282,7 @@ pageContext.setAttribute("basePath",basePath);
             	}
             });
             
+            /*
             $("#multi_delete_link").click(function(){
             	var cbs = $("input[name=fileCheck]:checked");
             	if(cbs.length==0){
@@ -288,7 +299,7 @@ pageContext.setAttribute("basePath",basePath);
 					});
             	}
             });
-            
+            */
             $(".form-horizontal").submit(function(){return false;});
         }
         

@@ -2,6 +2,8 @@ package org.yws.pangu.web.webbean;
 
 import java.io.Serializable;
 
+import org.yws.pangu.domain.FileBean;
+
 public class FileWebBean implements Serializable {
 
 	/**
@@ -10,20 +12,13 @@ public class FileWebBean implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Integer id;
-	private StateWebBean state;
-	private String text;
-	private String type;
-
-	public FileWebBean(Integer integer, String text, boolean b) {
-		this.state = new StateWebBean(true, false, false);
-		this.id = integer;
-		this.text = text;
-		this.type = b ? "folder" : "file";
-	}
-
-	public FileWebBean(Integer id, String text) {
+	private String name;
+	private boolean isFolder;
+	
+	public FileWebBean(Integer id, String name, Short type) {
 		this.id = id;
-		this.text = text;
+		this.name = name;
+		this.isFolder = FileBean.FOLDER == type;
 	}
 
 	public Integer getId() {
@@ -34,69 +29,27 @@ public class FileWebBean implements Serializable {
 		this.id = id;
 	}
 
-	public String getText() {
-		return text;
+	public String getName() {
+		return name;
 	}
 
-	public void setText(String text) {
-		this.text = text;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getType() {
-		return type;
+	public boolean isFolder() {
+		return isFolder;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setFolder(boolean isFolder) {
+		this.isFolder = isFolder;
 	}
 
-	public StateWebBean getState() {
-		return state;
+	public boolean getIsParent(){
+		return isFolder;
 	}
-
-	public void setState(StateWebBean state) {
-		this.state = state;
+	
+	public void setIsParent(){
+		
 	}
-
-}
-
-class StateWebBean implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	boolean opened = false;
-	boolean disabled = false;
-	boolean selected = false;
-
-	public StateWebBean(boolean opened, boolean disabled, boolean selected) {
-		this.opened = opened;
-		this.disabled = disabled;
-		this.selected = selected;
-	}
-
-	public boolean isOpened() {
-		return opened;
-	}
-
-	public void setOpened(boolean opened) {
-		this.opened = opened;
-	}
-
-	public boolean isDisabled() {
-		return disabled;
-	}
-
-	public void setDisabled(boolean disabled) {
-		this.disabled = disabled;
-	}
-
-	public boolean isSelected() {
-		return selected;
-	}
-
-	public void setSelected(boolean selected) {
-		this.selected = selected;
-	}
-
 }

@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.dao.mysql.MySqlFileDao;
@@ -53,7 +53,7 @@ public class FileServiceImpl {
 		}
 	}
 
-	public int execute(String content) throws IOException {
+	public int execute(Integer fileId, String content) throws IOException {
 		// write file
 		File file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
 		file.createNewFile();
@@ -71,8 +71,8 @@ public class FileServiceImpl {
 		final InputStream errorStream = process.getErrorStream();
 
 		// TODO:
-		MemoryHelper.LOG_MAP.put("1", new StringBuffer("PANGU> Job start...\n"));
-		MemoryHelper.JOB_STATUS_MAP.put("1", "RUNNING");
+		MemoryHelper.LOG_MAP.put(fileId.toString(), new StringBuffer("PANGU> Job start...\n"));
+		MemoryHelper.JOB_STATUS_MAP.put(fileId.toString(), "RUNNING");
 		OutputRedirector outRedirect = new OutputRedirector(inputStream, "CONSOLE");
 		OutputRedirector outToConsole = new OutputRedirector(errorStream, "CONSOLE");
 		outRedirect.start();
@@ -81,7 +81,7 @@ public class FileServiceImpl {
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
-			MemoryHelper.JOB_STATUS_MAP.put("1", "END");
+			MemoryHelper.JOB_STATUS_MAP.put(fileId.toString(), "END");
 		} catch (InterruptedException e) {
 			System.out.println(e);
 		} finally {
@@ -89,5 +89,21 @@ public class FileServiceImpl {
 		}
 
 		return exitCode;
+	}
+
+	public String getContent(Integer fileId, String owner) {
+		return fileDao.getFile(fileId, owner).getContent();
+	}
+
+	public boolean updateContent(Integer fileId, String content, String owner) {
+		FileDescriptor fd = fileDao.getFile(fileId, owner);
+		fd.setGmtModified(new Date());
+		fd.setContent(content);
+		try {
+			fileDao.update(fd);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 }

@@ -28,26 +28,45 @@ public class FileController {
 	FileTreeWebBean list(Integer id) {
 		List<FileWebBean> l = new ArrayList<FileWebBean>();
 
-		//TODO:
+		// TODO:
 		String owner = "1";
-		
+
 		FileBean fb = fileService.getFile(id, owner);
-		
-		if(fb.getSubFiles()!=null){
-			for(FileDescriptor fd : fb.getSubFiles()){
-				l.add(new FileWebBean(fd.getId(), fd.getName(), fd.isFolder()));
+
+		if (fb.getSubFiles() != null && fb.getSubFiles().size() > 0) {
+			for (FileDescriptor fd : fb.getSubFiles()) {
+				l.add(new FileWebBean(fd.getId(), fd.getName(), fd.getType()));
 			}
+			return new FileTreeWebBean(fb.getFileDescriptor().getId().toString(), fb
+					.getFileDescriptor().getName(), fb.getFileDescriptor().getType(), l);
+		} else {
+			return null;
+
 		}
-		
-		return new FileTreeWebBean(fb.getFileDescriptor().getName(), l);
+	}
+
+	@RequestMapping(value = "content.do")
+	public @ResponseBody
+	String getLog(Integer fileId) {
+		// TODO:
+		String owner = "1";
+		return fileService.getContent(fileId, owner);
+	}
+
+	@RequestMapping(value = "updatecontent.do")
+	public @ResponseBody
+	boolean updatecontent(String content, Integer fileId) {
+		// TODO:
+		String owner = "1";
+		return fileService.updateContent(fileId, content, owner);
 	}
 
 	@RequestMapping(value = "run.do")
 	public @ResponseBody
-	boolean run(String content) {
+	boolean run(Integer fileId, String content) {
 
 		try {
-			return fileService.execute(content) == 0;
+			return fileService.execute(fileId, content) == 0;
 		} catch (IOException e) {
 			return false;
 		}
@@ -55,10 +74,12 @@ public class FileController {
 
 	@RequestMapping(value = "getlog.do")
 	public @ResponseBody
-	LogStatusWebBean getLog(String jobId) {
-		
-		LogStatusWebBean wb = new LogStatusWebBean(MemoryHelper.JOB_STATUS_MAP.get(jobId),MemoryHelper.LOG_MAP.get(jobId).toString());
-		
+	LogStatusWebBean getLog(String fileId) {
+
+		LogStatusWebBean wb = new LogStatusWebBean(MemoryHelper.JOB_STATUS_MAP.get(fileId),
+				MemoryHelper.LOG_MAP.get(fileId).toString());
+
 		return wb;
 	}
+
 }

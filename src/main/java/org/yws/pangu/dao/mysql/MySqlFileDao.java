@@ -49,4 +49,9 @@ public class MySqlFileDao {
 		return fd;
 	}
 
+	public void update(FileDescriptor fd) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.update(fd);
+	}
+
 }
