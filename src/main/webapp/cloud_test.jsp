@@ -45,7 +45,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 
         <div class="row action-div">
         
-        	<div class="col-md-2">
+        	<div class="col-md-3">
         		<div class="panel panel-default">
 					<div class="panel-body">
 	        			<div class="zTreeDemoBackground left">
@@ -59,13 +59,12 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 					    <button type="button" id="addFileBtn" class="btn btn-default">创建文件</button>
 					    <button type="button" id="addHiveBtn" class="btn btn-default">创建Hive</button>
 					    <button type="button" id="addShellBtn" class="btn btn-default">创建Shell</button>
-					    <button type="button" id="openBtn" class="btn btn-default">打开</button>
 					    <button type="button" id="deleteBtn" class="btn btn-default">删除</button>
 					</div>
 		        </div>
 	        </div>
 	        
-	        <div class="col-md-10">
+	        <div class="col-md-9">
 	        	<div class="panel panel-default">
 					<div class="panel-body">
 					
@@ -102,6 +101,38 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 								</div>
 							</div>
 						</div>
+						<div class="panel panel-default console-panel">
+							<div class="panel-heading">历史日志(最近10条)</div>
+							<div class="panel-body">
+								<table class="table table-striped">
+							      <thead>
+							        <tr>
+							          <th>ID</th>
+							          <th>状态</th>
+							          <th>运行时间</th>
+							          <th>结束时间</th>
+							          <th>操作</th>
+							        </tr>
+							      </thead>
+							      <tbody>
+							        <tr>
+							          <td>1</td>
+							          <td>运行中</td>
+							          <td>2014/12/12 12:12:12</td>
+							          <td></td>
+							          <td><button type="button" class="btn btn-default btn-xs">查看日志</button>,<button type="button" class="btn btn-primary btn-xs">取消任务</button></td>
+							        </tr>
+							        <tr>
+							          <td>1</td>
+							          <td>成功</td>
+							          <td>2014/12/12 12:12:12</td>
+							          <td>2014/12/12 12:14:12</td>
+							          <td><button type="button" class="btn btn-default btn-xs">查看日志</button></td>
+							        </tr>
+							      </tbody>
+							    </table>
+							</div>
+						</div>
 					</div>
 				</div>
 	        </div>
@@ -134,6 +165,15 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
     					url:"/files/list.do",
     					autoParam:["id"]
     				},
+    				view: {
+    					selectedMulti: false
+    				},
+    				edit: {
+    					enable: true,
+    					showRemoveBtn: false,
+    					showRenameBtn: false
+    				},
+
     				callback: {
     					onRightClick: OnRightClick,
     					onClick: OnLeftClick
@@ -146,6 +186,8 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
     		});
         	
         	resetToolBar();
+        	
+        	initContextMenuFunction();
         	$("#run-btn").click(runBtnClick);
         	$("#save-content-btn").click(saveContentBtnClick);
         	$("#editbox").keydown(function(){
@@ -160,6 +202,57 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         	$("#editbox").attr("disabled","disabled");
         }
         
+        function initContextMenuFunction(){
+        	$("#addFolderBtn").bind("click", {isParent:true}, add);
+        	$("#addFileBtn").bind("click", {isParent:false}, add);
+        	$("#addHiveBtn").bind("click", {isParent:false}, add);
+        	$("#addShellBtn").bind("click", {isParent:false}, add);
+        	$("#deleteBtn").bind("click", {isParent:false}, add);
+        }
+
+        function hideRMenu() {
+			if (rMenu) rMenu.css({"visibility": "hidden"});
+			$("body").unbind("mousedown", onBodyMouseDown);
+		}
+
+        function add(e) {
+        	hideRMenu();
+        	
+			var zTree = $.fn.zTree.getZTreeObj("tree"),
+			isParent = e.data.isParent,
+			nodes = zTree.getSelectedNodes(),
+			treeNode = nodes[0];
+			if (treeNode) {
+				var name = "New File";
+				var type = "File";
+				if(isParent){
+					name="New Folder";
+					type="Folder";
+				}
+				
+				$.post("/files/add.do",{"name":name, isParent:isParent, "type":type,"parentId":treeNode.id},function(res){
+					if(res.success){
+						refreshNode("refresh", false);
+					}else{
+						alert("Error");
+					}
+				});
+			}
+		};
+		
+		function refreshNode(type,silent) {
+			var zTree = $.fn.zTree.getZTreeObj("tree"),
+			nodes = zTree.getSelectedNodes();
+			if (nodes.length == 0) {
+				alert("请先选择一个父节点");
+			}
+			for (var i=0, l=nodes.length; i<l; i++) {
+				zTree.reAsyncChildNodes(nodes[i], type, silent);
+				if (!silent) zTree.selectNode(nodes[i]);
+			}
+		}
+
+		
         function OnLeftClick(event, treeId, treeNode) {
         	if(!treeNode.folder){
         		$.post("/files/content.do",{fileId:treeNode.id},function(data){
@@ -181,14 +274,14 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         
         function OnRightClick(event, treeId, treeNode) {
         	if(treeNode==null) return;
-        	
+        	zTree.selectNode(treeNode);
         	showRMenu(treeNode.folder, event.clientX, event.clientY);
 		}
 
 		function showRMenu(isFolder, x, y) {
 			$("#rMenu button").show();
 			if (isFolder) {
-				$("#openBtn").hide();
+				
 			}else{
 			    $("#addFolderBtn").hide();
 			    $("#addFileBtn").hide();

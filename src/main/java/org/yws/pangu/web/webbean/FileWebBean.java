@@ -14,6 +14,7 @@ public class FileWebBean implements Serializable {
 	private Integer id;
 	private String name;
 	private boolean isFolder;
+	private boolean isParent;
 	
 	public FileWebBean(Integer id, String name, Short type) {
 		this.id = id;

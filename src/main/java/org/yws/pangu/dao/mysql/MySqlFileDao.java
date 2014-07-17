@@ -54,4 +54,10 @@ public class MySqlFileDao {
 		session.update(fd);
 	}
 
+	public Integer save(FileDescriptor fd) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.save(fd);
+		return fd.getId();
+	}
+
 }

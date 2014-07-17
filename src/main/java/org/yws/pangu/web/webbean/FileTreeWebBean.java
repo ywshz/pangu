@@ -64,4 +64,11 @@ public class FileTreeWebBean implements Serializable {
 		this.isFolder = isFolder;
 	}
 
+	public boolean getIsParent(){
+		return isFolder;
+	}
+	
+	public void setIsParent(){
+		
+	}
 }

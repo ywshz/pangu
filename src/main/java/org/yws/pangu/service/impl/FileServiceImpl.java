@@ -106,4 +106,11 @@ public class FileServiceImpl {
 		}
 		return true;
 	}
+
+	public Integer save(FileDescriptor fd) {
+		Date d = new Date();
+		fd.setGmtCreate(d);
+		fd.setGmtModified(d);
+		return fileDao.save(fd);
+	}
 }
