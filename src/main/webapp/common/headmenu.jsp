@@ -22,7 +22,7 @@
 				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/cloud_test.jsp">云测试</a></li>
 				<li class="${page=='topics'?active:'' }"><a
-					href="${path }/developing.html">云调度</a></li>
+					href="${path }/cloud_job.jsp">云调度</a></li>
 				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/developing.html">云统计</a></li>
 			</ul>

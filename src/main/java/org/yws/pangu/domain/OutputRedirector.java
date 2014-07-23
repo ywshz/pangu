@@ -22,8 +22,7 @@ public class OutputRedirector extends Thread {
             BufferedReader br = new BufferedReader(isr);
             String line = null;
             while ((line = br.readLine()) != null) {
-                System.out.println("PANGU> "+line);
-                MemoryHelper.LOG_MAP.get("1").append("PANGU> "+line+"\n");
+                MemoryHelper.LOG_MAP.get("1").append(line+"\n");
             }
         } catch (IOException ioE) {
         	ioE.printStackTrace();
