@@ -143,7 +143,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 							          <th>操作</th>
 							        </tr>
 							      </thead>
-							      <tbody>
+							      <tbody id="history-tbody">
 							        <tr>
 							          <td>123</td>
 							          <td>运行中</td>
@@ -454,6 +454,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         function OnLeftClick(event, treeId, treeNode) {
         	if(!treeNode.folder){
         		freshJobView(treeNode.id);
+        		refreshHistoryView(treeNode.id);
         	}
         }
         
@@ -482,6 +483,16 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 				}
 				$("#edit-script").val(data.script);
     		});
+        }
+        
+        function refreshHistoryView(jobId){
+        	$.post("/jobs/history.do",{ jobId : jobId},function(data){
+        		$("#history-tbody").html("");
+        		
+        		$.each(data, function(key, his) { 
+        			alert(key + ':' + his.startTime); 
+        		}); 
+        	});
         }
         
         function OnRightClick(event, treeId, treeNode) {

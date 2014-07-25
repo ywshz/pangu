@@ -7,6 +7,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
+import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.service.impl.JobServiceImpl;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -24,9 +25,16 @@ public class JobServiceTest {
 	}
 
 	@Test
-	public void groupList(Integer parentId) {
-		for (JobGroup g : jobService.groupList(parentId)) {
+	public void groupList() {
+		for (JobGroup g : jobService.groupList(1)) {
 			System.out.println(g.getName());
+		}
+	}
+	
+	@Test
+	public void hisList(){
+		for (JobHistory g : jobService.listJobHistory(new Long(1))) {
+			System.out.println(g.getStartTime());
 		}
 	}
 }

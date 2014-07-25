@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
+import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.service.impl.JobServiceImpl;
+import org.yws.pangu.utils.DateUtils;
+import org.yws.pangu.web.webbean.JobHistoryListItemWebBean;
 import org.yws.pangu.web.webbean.JobTreeNodeWebBean;
 import org.yws.pangu.web.webbean.JobTreeWebBean;
 import org.yws.pangu.web.webbean.UpdateJobWebBean;
@@ -89,5 +92,21 @@ public class JobController {
 			return false;
 		}
 		return true;
+	}
+	
+	@RequestMapping(value = "history.do")
+	public @ResponseBody Object history(Long jobId) {
+		List<JobHistoryListItemWebBean> list = new ArrayList<JobHistoryListItemWebBean>();
+		for(JobHistory his : jobService.listJobHistory(jobId)){
+			JobHistoryListItemWebBean wb = new JobHistoryListItemWebBean();
+			if(his.getEndTime()!=null)
+				wb.setEndTime(DateUtils.format(his.getEndTime().getTime(), "yyyy/MM/dd HH:mm:ss"));
+			if(his.getStartTime()!=null)
+				wb.setStartTime(DateUtils.format(his.getStartTime().getTime(), "yyyy/MM/dd HH:mm:ss"));
+			wb.setId(his.getId().toString());
+			wb.setStatus(his.getStatus());
+			list.add(wb);
+		}
+		return list;
 	}
 }
