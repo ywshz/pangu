@@ -15,10 +15,10 @@ public class DateRender {
 
 	public static String render(String content) {
 		VelocityContext context = new VelocityContext();
-		context.put("zdt", new PanguDateTool());
 		Pattern pt = Pattern.compile("\\$\\{zdt.*\\}");
 		Matcher matcher = pt.matcher(content);
 		while (matcher.find()) {
+			context.put("zdt", new PanguDateTool());
 			String m = content.substring(matcher.start(), matcher.end());
 			StringWriter sw = new StringWriter();
 			try {
@@ -27,6 +27,7 @@ public class DateRender {
 				return null;
 			}
 			content = content.replace(m, sw.toString());
+			matcher = pt.matcher(content);
 		}
 		return content;
 	}

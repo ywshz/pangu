@@ -34,7 +34,6 @@ http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
-				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.show_sql">true</prop>
 				<prop key="hiberante.format_sql">true</prop>
 				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate4.SpringSessionContext
@@ -55,6 +54,7 @@ http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 		<tx:attributes>
 			<tx:method name="get*" read-only="true" propagation="REQUIRED" /><!--之前是NOT_SUPPORT -->
 			<tx:method name="find*" read-only="true" propagation="REQUIRED" /><!--之前是NOT_SUPPORT -->
+			<tx:method name="list*" read-only="true" propagation="REQUIRED" /><!--之前是NOT_SUPPORT -->
 			<tx:method name="save*" propagation="REQUIRED" />
 			<tx:method name="update*" propagation="REQUIRED" />
 			<tx:method name="remove*" propagation="REQUIRED" />

@@ -3,6 +3,8 @@ package org.yws.pangu.schedule;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -15,6 +17,7 @@ import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yws.pangu.utils.DateRender;
 
 public class ScheduleRunner {
 	private static Logger logger = LoggerFactory.getLogger(ScheduleRunner.class);
@@ -45,6 +48,12 @@ public class ScheduleRunner {
 
 			String triggerName = "trigger.name." + jobId;
 			String triggerGroup = "trigger.groupname." + jobId;
+			
+			if(!validateScript(script)){
+				logger.error("JobId input Script file format error, please check!");
+				return ;
+			}
+			
 			if ("hive".equals(type)) {
 
 				JobDetail job = JobBuilder.newJob(RunHiveJob.class)
@@ -72,4 +81,25 @@ public class ScheduleRunner {
 
 		sched.start();
 	}
+
+	private static boolean validateScript(String path) {
+		try {
+			String script = readFile(path);
+			script = DateRender.render(script);
+			logger.info("Rendered script:\n"+script);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+	
+	private static String readFile(String path) throws IOException {
+		File file = new File(path);
+		FileReader fr = new FileReader(file);
+		char[] chars = new char[(int) file.length()];
+		fr.read(chars);
+		fr.close();
+		return String.valueOf(chars);
+	}
+
 }

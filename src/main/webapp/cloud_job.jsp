@@ -49,15 +49,13 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         		<div class="panel panel-default">
 					<div class="panel-body">
 	        			<div class="zTreeDemoBackground left">
-
 			        		<ul id="tree" class="ztree">
-							 </ul>
+							</ul>
 	        			</div>
 		        	</div>
 		        	<div id="rMenu" class="btn-group-vertical">
-						<button type="button" id="addFolderBtn" class="btn btn-default">创建组</button>
-					    <button type="button" id="addFileBtn" class="btn btn-default">添加任务</button>
-					    <button type="button" id="deleteBtn" class="btn btn-default">删除</button>
+						<button type="button" id="add-group-btn" class="btn btn-default">创建组</button>
+					    <button type="button" id="add-job-btn" class="btn btn-default">添加任务</button>
 					</div>
 		        </div>
 	        </div>
@@ -100,21 +98,21 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 											<table class="table">
 											<tr>
 												<td> <strong>ID:</strong></td>
-												<td>99</td>
+												<td id="job-id-td">?</td>
 												<td> <strong>任务类型:</strong></td>
-												<td>HIVE脚本</td>
+												<td id="job-type-td">?</td>
 											</tr>
 											<tr>
 												<td> <strong>名称:</strong></td>
-												<td>xxxx</td>
+												<td id="name-td">?</td>
 												<td> <strong>调度类型:</strong></td>
-												<td>定时调度</td>
+												<td id="run-type-td">?</td>
 											</tr>
 											<tr>
 												<td> <strong>调度状态:</strong></td>
-												<td>xxxx</td>
+												<td id="auto-td">?</td>
 												<td> <strong>依赖/定时:</strong></td>
-												<td>xxxx</td>
+												<td id="run-time-td">?</td>
 											</tr>
 											</table>
 										</div>
@@ -126,7 +124,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 								<div class="panel-heading">脚本</div>
 								<div class="panel-body">
 									<div id="console-div" style='height:200px;overflow: auto;'>
-										<p id="log-p">xxxx</p>
+										<p id="script-p">?</p>
 									</div>
 								</div>
 							</div>
@@ -147,7 +145,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 							      </thead>
 							      <tbody>
 							        <tr>
-							          <td>1</td>
+							          <td>123</td>
 							          <td>运行中</td>
 							          <td>2014/12/12 12:12:12</td>
 							          <td></td>
@@ -181,9 +179,9 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 	</div>
 
 
-	<div class="modal fade" id="editModal" tabindex="-1" role="dialog"
+	<div class="modal fade  bs-example-modal-lg" id="editModal" tabindex="-1" role="dialog"
 		aria-labelledby="editModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
+		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">
@@ -197,22 +195,52 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 						<div class="form-group">
 							<label for="inputName" class="col-sm-2 control-label">名称</label>
 							<div class="col-sm-10">
-								<input type="email" class="form-control" id="inputName"
-									value="mmm">
+								<input type="text" class="form-control" id="inputName" value="">
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="inputPassword3" class="col-sm-2 control-label">调度类型</label>
+							<label for="" class="col-sm-2 control-label">调度类型</label>
 							<div class="col-sm-10">
-								<input type="password" class="form-control" id="inputPassword3"
-									placeholder="Password">
+								<select class="form-control" id="inputScheduleType">
+								  <option value="hive">Hive脚本</option>
+								  <option value="shell">Shell脚本</option>
+								</select>
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="inputPassword3" class="col-sm-2 control-label">依赖/定时</label>
+							<label for="scheduleInput" class="col-sm-2 control-label">依赖/定时</label>
 							<div class="col-sm-10">
-								<input type="password" class="form-control" id="inputPassword3"
-									placeholder="Password">
+								<div class="radio">
+								  <label>
+								    <input type="radio" name="scheduleType" id="radioSchedualByTime" value="1">
+								            定时表达式
+								  </label>
+								  <input type="text" class="form-control" id="inputCron" value="0 0 0 * * ?">
+								</div>
+								<div class="radio">
+								  <label>
+								    <input type="radio" name="scheduleType" id="radioSchedualByDependency" value="2">
+								    依赖
+								  </label>
+								  <input type="text"  class="form-control" id="dependenciesSel" name="dependencies" readonly="readonly" onclick="showMenu();"> 
+								  
+								  <div id="menuContent" style="display:none;" class="zTreeDemoBackground left">
+					     			<ul id="dependencyTree" class="ztree">
+									</ul>
+			        			  </div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="inputPassword3" class="col-sm-2 control-label">脚本</label>
+							<div class="col-sm-10">
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<div class="col-sm-12">
+								<textarea class="form-control" id="edit-script" name="script" rows="10" draggable="false" ></textarea>
 							</div>
 						</div>
 					</form>
@@ -220,7 +248,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-					<button type="button" class="btn btn-primary">保存</button>
+					<button type="button" id="update-job-btn" class="btn btn-primary">保存</button>
 				</div>
 			</div>
 		</div>
@@ -229,7 +257,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 	<!-- /.container -->
 	
 	<input type="hidden" id="editing-file-input" value=""/>
-	
+	<input type="hidden" id="viewing-job-input" value=""/>
 	<!-- Bootstrap core JavaScript
     ================================================== -->
 	<!-- Placed at the end of the document so the pages load faster -->
@@ -237,41 +265,41 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 	<script src="${path }/bootstrap/js/bootstrap.min.js"></script>
     
 	<script type="text/javascript" src="${path }/js/jquery.ztree.core-3.5.js"></script>
-    
+    <script type="text/javascript" src="${path }/js/jquery.ztree.excheck-3.5.js"></script>
     
     <script type="text/javascript">
 	
         $(document).ready(init);
         
         function init(){
-        	$(document).ready(function(){
-    			$.fn.zTree.init($("#tree"), {
-    				async: {
-    					enable: true,
-    					url:"/files/list.do",
-    					autoParam:["id"]
-    				},
-    				view: {
-    					selectedMulti: false
-    				},
-    				edit: {
-    					enable: true,
-    					showRemoveBtn: false,
-    					showRenameBtn: false
-    				},
-
-    				callback: {
-    					onRightClick: OnRightClick,
-    					onClick: OnLeftClick
-    				}
-    			});
-    			
-    			zTree = $.fn.zTree.getZTreeObj("tree");
-    			rMenu = $("#rMenu");
-    			hideRMenu();
-    		});
-        	
+        	initLeftTree();
         	initToolBar();
+        }
+        
+        function initLeftTree(){
+        	$.fn.zTree.init($("#tree"), {
+    			async: {
+    				enable: true,
+    				url:"/jobs/list.do",
+    				autoParam:["id"]
+    			},
+    			view: {
+    				selectedMulti: false
+    			},
+    			edit: {
+    				enable: true,
+    				showRemoveBtn: false,
+    				showRenameBtn: false
+    			},
+    				callback: {
+   					onRightClick: OnRightClick,
+   					onClick: OnLeftClick
+   				}
+   			});
+   			
+   			zTree = $.fn.zTree.getZTreeObj("tree");
+   			rMenu = $("#rMenu");
+   			hideRMenu();
         	initContextMenuFunction();
         }
         
@@ -281,7 +309,28 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         			  backdrop: 'static',
         			  keyboard: false
         		});
+        		
+          		$.fn.zTree.init($("#dependencyTree"), {
+          			check: {
+          				enable: true,
+          				chkboxType: {"Y":"", "N":""}
+          			},
+        			async: {
+        				enable: true,
+        				url:"/jobs/list.do",
+        				autoParam:["id"]
+        			},
+          			view: {
+          				dblClickExpand: false
+          			},
+          			callback: {
+          				beforeClick: beforeClick,
+        				onCheck: onCheck
+          			}
+          		});
+
         	});
+        	
         	$("#manual-run-btn").click(function(){
         		
         	});
@@ -294,14 +343,69 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         	$("#delete-btn").click(function(){
         		
         	});
+			$("#update-job-btn").click(function(){
+        		$.post("/jobs/update.do",{
+        			id:$("#viewing-job-input").val(),
+        			name:$("#inputName").val(),
+        			runType:$("#inputScheduleType").val(),
+        			scheduleType:$('input[type="radio"][name="scheduleType"]:checked').val(),
+        			cron:$("#inputCron").val(),
+        			dependencies:$("#dependenciesSel").val(),
+        			script:$("#edit-script").val()
+        			},
+        			function(res){
+        				if(res==false){
+        					alert("操作失败!");
+        					return;
+        				}
+        				
+        				var zTree = $.fn.zTree.getZTreeObj("tree"),
+        				nodes = zTree.getSelectedNodes();
+        				nodes[0].name = $("#inputName").val()+"["+$("#viewing-job-input").val()+"]";
+        				zTree.updateNode(nodes[0]);
+        				$('#editModal').modal('hide');
+        				freshJobView($("#viewing-job-input").val());
+        				alert("修改成功!");
+        		});
+        	});
         }
         
+        function beforeClick(treeId, treeNode) {
+			var zTree = $.fn.zTree.getZTreeObj("dependencyTree");
+			zTree.checkNode(treeNode, !treeNode.checked, null, true);
+			return false;
+		}
+		
+		function onCheck(e, treeId, treeNode) {
+			var zTree = $.fn.zTree.getZTreeObj("dependencyTree"),
+			nodes = zTree.getCheckedNodes(true),
+			v = "";
+			for (var i=0, l=nodes.length; i<l; i++) {
+				v += nodes[i].id + ",";
+			}
+			if (v.length > 0 ) v = v.substring(0, v.length-1);
+			$("#dependenciesSel").val(v);
+		}
+
+		function showMenu() {
+			$("#menuContent").show();
+			$("body").bind("mousedown", onBodyDown);
+		}
+		
+		function hideMenu() {
+			$("#menuContent").hide();
+			$("body").unbind("mousedown", onBodyDown);
+		}
+		function onBodyDown(event) {
+			if (!(event.target.id == "dependenciesSel" || event.target.id == "menuContent" || $(event.target).parents("#menuContent").length>0)) {
+				hideMenu();
+			}
+		}
+		
         function initContextMenuFunction(){
-        	$("#addFolderBtn").bind("click", {isParent:true}, add);
-        	$("#addFileBtn").bind("click", {isParent:false}, add);
-        	$("#addHiveBtn").bind("click", {isParent:false}, add);
-        	$("#addShellBtn").bind("click", {isParent:false}, add);
-        	$("#deleteBtn").bind("click", {isParent:false}, add);
+        	$("#add-group-btn").bind("click", {isParent:true}, add);
+        	$("#add-job-btn").bind("click", {isParent:true}, add);
+        	$("#delete-btn").bind("click", {isParent:false}, add);
         }
 
         function hideRMenu() {
@@ -349,39 +453,55 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 		
         function OnLeftClick(event, treeId, treeNode) {
         	if(!treeNode.folder){
-        		$.post("/files/content.do",{fileId:treeNode.id},function(data){
-        			$("#editbox").val(data);
-        			$("#op-info").text("已打开: "+treeNode.name);
-        			$("#editing-file-input").val(treeNode.id);
-        			$("#editbox").removeAttr("disabled");
-        			$("#save-content-btn").removeAttr("disabled");
-                	$("#run-btn").removeAttr("disabled");
-                	$("#run-select-btn").removeAttr("disabled");
-        		});
-        	}else{
-        		resetToolBar();
-        		$("#op-info").text("");
-        		$("#editbox").val("");
-        		$("#editing-file-input").val("");
+        		freshJobView(treeNode.id);
         	}
+        }
+        
+        function freshJobView(jobId){
+        	$.post("/jobs/get.do",{ id : jobId},function(data){
+				
+				$("#job-id-td").text(data.id);
+				$("#job-type-td").text(data.runType);
+				$("#name-td").text(data.name);
+				$("#run-type-td").text(data.scheduleType==1?"定时调度":"依赖调度");
+				$("#auto-td").text(data.auto==0?"关闭":"开启");
+				$("#run-time-td").text(data.scheduleType==1 ? data.cron : data.dependencies);
+				$("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
+				
+				$("#viewing-job-input").val(data.id);
+				
+				$("#inputName").val(data.name);
+				$("#inputScheduleType").val(data.runType);
+				
+				if(data.scheduleType==1){
+					$("#radioSchedualByTime").attr("checked", "checked");
+					$("#inputCron").val(data.cron);
+				}else{
+					$("#radioSchedualByDependency").attr("checked", "checked");
+					$("#dependenciesSel").val(data.dependencies);
+				}
+				$("#edit-script").val(data.script);
+    		});
         }
         
         function OnRightClick(event, treeId, treeNode) {
         	if(treeNode==null) return;
         	zTree.selectNode(treeNode);
-        	showRMenu(treeNode.folder, event.clientX, event.clientY);
+        	showRMenu(treeNode.isRoot, treeNode.folder, event.clientX, event.clientY);
 		}
 
-		function showRMenu(isFolder, x, y) {
+		function showRMenu(isRoot, isFolder, x, y) {
 			$("#rMenu button").show();
+			
+			if(isRoot){
+			    $("#add-job-btn").hide();	
+			}
+			
 			if (isFolder) {
-				
+				$("#add-group-btn").hide();
 			}else{
-			    $("#addFolderBtn").hide();
-			    $("#addFileBtn").hide();
-			    $("#addHiveBtn").hide();
-			    $("#addFileBtn").hide();
-			    $("#addShellBtn").hide();
+			    $("#add-group-btn").hide();
+			    $("#add-job-btn").hide();
 			}
 			
 			rMenu.css({"top":y+"px", "left":x+"px", "visibility":"visible"});

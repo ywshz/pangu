@@ -24,6 +24,19 @@ public class RunHiveJob implements Job {
 	private final String HIVE_HOME;
 	private final String HADOOP_HOME;
 
+	public static void main(String[] args) {
+		String path = "f:/1.hive";
+		try {
+			String script = new RunHiveJob().readFile(path);
+			script = DateRender.render(script);
+			logger.info("\n"+script);
+		} catch (IOException e) {
+			logger.error("Read File {} error", path);
+			return;
+		}
+		logger.info(path);
+		
+	}
 	public RunHiveJob() {
 		Properties props = new Properties();
 		try {
@@ -48,6 +61,9 @@ public class RunHiveJob implements Job {
 			logger.info(script);
 			file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
 			file.createNewFile();
+			file.setExecutable(true);
+			file.setReadable(true);
+			file.setWritable(true);
 			BufferedWriter out = new BufferedWriter(new FileWriter(file));
 			out.write(script);
 			out.close();
