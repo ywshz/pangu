@@ -19,4 +19,8 @@ public class FileServiceTest {
 	public void testLoadRoot(){
 		Assert.assertNotNull(fileService.getFile(1, "1"));
 	}
+
+    @Test
+    public void testHistory(){
+    }
 }

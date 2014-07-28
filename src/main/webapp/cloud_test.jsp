@@ -114,21 +114,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 							          <th>操作</th>
 							        </tr>
 							      </thead>
-							      <tbody>
-							        <tr>
-							          <td>1</td>
-							          <td>运行中</td>
-							          <td>2014/12/12 12:12:12</td>
-							          <td></td>
-							          <td><button type="button" class="btn btn-default btn-xs">查看日志</button>,<button type="button" class="btn btn-primary btn-xs">取消任务</button></td>
-							        </tr>
-							        <tr>
-							          <td>1</td>
-							          <td>成功</td>
-							          <td>2014/12/12 12:12:12</td>
-							          <td>2014/12/12 12:14:12</td>
-							          <td><button type="button" class="btn btn-default btn-xs">查看日志</button></td>
-							        </tr>
+							      <tbody id="history-tbody">
 							      </tbody>
 							    </table>
 							</div>
@@ -162,7 +148,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
     			$.fn.zTree.init($("#tree"), {
     				async: {
     					enable: true,
-    					url:"/files/list.do",
+    					url:"${path }/files/list.do",
     					autoParam:["id"]
     				},
     				view: {
@@ -193,8 +179,26 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         	$("#editbox").keydown(function(){
         		$("#op-info").text("已修改未保存");
         	});
+
         }
-        
+
+        function refreshHistoryView(fileId) {
+            $.post("${path }/files/historylist.do", { fileId: fileId}, function (data) {
+                $("#history-tbody").html("");
+
+                $.each(data, function (key, his) {
+
+                    var td = "<tr><td>"+his.id+"</td><td>"+his.status+"</td><td>"+his.startTime+"</td><td>"+his.endTime+"</td><td>";
+                    td+='<button type="button" class="btn btn-default btn-xs">查看日志</button>';
+                    if(his.status=="running"){
+                        td+=',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
+                    }
+                    td+="</td></tr>"
+                    $("#history-tbody").append(td);
+                });
+            });
+        }
+
         function resetToolBar(){
         	$("#save-content-btn").attr("disabled","disabled");
         	$("#run-btn").attr("disabled","disabled");
@@ -230,7 +234,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 					type="Folder";
 				}
 				
-				$.post("/files/add.do",{"name":name, isParent:isParent, "type":type,"parentId":treeNode.id},function(res){
+				$.post("${path }/files/add.do",{"name":name, isParent:isParent, "type":type,"parentId":treeNode.id},function(res){
 					if(res.success){
 						refreshNode("refresh", false);
 					}else{
@@ -255,7 +259,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 		
         function OnLeftClick(event, treeId, treeNode) {
         	if(!treeNode.folder){
-        		$.post("/files/content.do",{fileId:treeNode.id},function(data){
+        		$.post("${path }/files/content.do",{fileId:treeNode.id},function(data){
         			$("#editbox").val(data);
         			$("#op-info").text("已打开: "+treeNode.name);
         			$("#editing-file-input").val(treeNode.id);
@@ -263,6 +267,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         			$("#save-content-btn").removeAttr("disabled");
                 	$("#run-btn").removeAttr("disabled");
                 	$("#run-select-btn").removeAttr("disabled");
+                    refreshHistoryView($("#editing-file-input").val());
         		});
         	}else{
         		resetToolBar();
@@ -305,12 +310,28 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
 		}
 		
         function runBtnClick(){
-        	$.post("/files/run.do",{content:$("#editbox").val(),fileId:$("#editing-file-input").val()},function(res){
-        		if(res){
+            $("#run-btn").attr("disabled","disabled");
+            $("#op-info").val("检测是否正在运行...");
+            var isRunning;
+            $.post("${path }/files/isrun.do",{fileId:$("#editing-file-input").val()},function(res){
+                if(res){
+                    alert("历史任务运行未结束,请稍后重试.")
+                    isRunning=true;
+                }
+            });
+
+            if(isRunning) return;
+
+            $("#op-info").val("运行中...");
+        	$.post("${path }/files/run.do",{content:$("#editbox").val(),fileId:$("#editing-file-input").val()},function(res){
+        		if(res!=-1){
         			var timeId = setInterval(function(){
-                	    $.post("/files/getlog.do",{fileId:$("#editing-file-input").val()},function(res){
-                	    	if(res.status=="END"){
+                	    $.post("${path }/files/gethistory.do",{historyId:res},function(res){
+                	    	if(res.status=="END" || res.status=="FAILED" ){
                 	    		clearTimeout(timeId);
+                                $("#op-info").val("运行结束");
+                                $("#run-btn").removeAttr("disabled");
+                                refreshHistoryView($("#editing-file-input").val());
                 	    	}
                 	    	var cr = $("#log-p").html();
                 	    	var nr = res.log.replace(/\n/g, "<br>");
@@ -319,8 +340,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         		        	    document.getElementById('console-div').scrollTop=document.getElementById('console-div').scrollHeight;
                 	    	}
                 	    });        
-                	    
-                	    
+
                 	},1000);
         		}else{
         			alert("运行失败");
@@ -329,7 +349,7 @@ div#rMenu {position:fixed; visibility:hidden; top:0;z-index:1000}
         }
         
         function saveContentBtnClick(){
-        	$.post("/files/updatecontent.do",{content:$("#editbox").val(),fileId:$("#editing-file-input").val()},function(res){
+        	$.post("${path }/files/updatecontent.do",{content:$("#editbox").val(),fileId:$("#editing-file-input").val()},function(res){
         		if(res){
 	        		$("#op-info").text("保存成功!");
         		}else{

@@ -1,21 +1,20 @@
 package org.yws.pangu.service.impl;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.Properties;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.dao.mysql.MySqlFileDao;
+import org.yws.pangu.dao.mysql.MysqlDebugHistoryDao;
+import org.yws.pangu.domain.DebugHistory;
 import org.yws.pangu.domain.FileBean;
 import org.yws.pangu.domain.FileDescriptor;
 import org.yws.pangu.domain.OutputRedirector;
-import org.yws.pangu.utils.MemoryHelper;
+import org.yws.pangu.utils.MemoryDebugHelper;
+
+import java.io.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 /*
  * 
@@ -27,6 +26,9 @@ public class FileServiceImpl {
 
 	@Autowired
 	private MySqlFileDao fileDao;
+    @Autowired
+    private MysqlDebugHistoryDao debugHistoryDao;
+
 
 	public FileServiceImpl() {
 		Properties props = new Properties();
@@ -53,12 +55,20 @@ public class FileServiceImpl {
 		}
 	}
 
-	public int execute(Integer fileId, String content) throws IOException {
+    /**
+     *
+     * @param fileId
+     * @param owner
+     * @return history id
+     * @throws IOException
+     */
+	public Long execute(Integer fileId,String owner) throws IOException {
+        FileBean fd = getFile(fileId,owner);
 		// write file
 		File file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
 		file.createNewFile();
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
-		out.write(content);
+		out.write(fd.getFileDescriptor().getContent());
 		out.close();
 
 		// execute file
@@ -71,24 +81,43 @@ public class FileServiceImpl {
 		final InputStream errorStream = process.getErrorStream();
 
 		// TODO:
-		MemoryHelper.LOG_MAP.put(fileId.toString(), new StringBuffer("PANGU> Job start...\n"));
-		MemoryHelper.JOB_STATUS_MAP.put(fileId.toString(), "RUNNING");
-		OutputRedirector outRedirect = new OutputRedirector(inputStream, "CONSOLE");
-		OutputRedirector outToConsole = new OutputRedirector(errorStream, "CONSOLE");
+
+        DebugHistory his = this.addDebugHistory(fileId,"hive");
+
+        fd.getFileDescriptor().setHistory(his.getId());
+        fileDao.update(fd.getFileDescriptor());
+
+        MemoryDebugHelper.LOG_MAP.put(fileId.toString(), new StringBuffer("Job start...\n"));
+        MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "RUNNING");
+
+		OutputRedirector outRedirect = new OutputRedirector(inputStream, fileId.toString());
+		OutputRedirector outToConsole = new OutputRedirector(errorStream, fileId.toString());
 		outRedirect.start();
 		outToConsole.start();
 
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
-			MemoryHelper.JOB_STATUS_MAP.put(fileId.toString(), "END");
+			MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "END");
+            his.setEndTime(new Date());
+            his.setLog(MemoryDebugHelper.LOG_MAP.get(fileId.toString()).toString());
+            his.setStatus("END");
+
+            updateDebugHistory(his);
+
 		} catch (InterruptedException e) {
-			System.out.println(e);
+            MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "FAILED");
+            his.setEndTime(new Date());
+            his.setLog(MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append(e.getMessage()).toString());
+            his.setStatus("FAILED");
+            updateDebugHistory(his);
 		} finally {
+            MemoryDebugHelper.JOB_STATUS_MAP.remove(fileId.toString());
+            MemoryDebugHelper.LOG_MAP.remove(fileId.toString());
 			process = null;
 		}
 
-		return exitCode;
+		return fd.getFileDescriptor().getHistory();
 	}
 
 	public String getContent(Integer fileId, String owner) {
@@ -113,4 +142,37 @@ public class FileServiceImpl {
 		fd.setGmtModified(d);
 		return fileDao.save(fd);
 	}
+
+    public DebugHistory getDebugHistory(Long id){
+        return  debugHistoryDao.get(id);
+    }
+
+    public boolean updateDebugHistoryLog(Long id,String newLog){
+        DebugHistory his = getDebugHistory(id);
+        if(his.getLog()==null){
+            his.setLog(newLog);
+        }else{
+            his.setLog(his.getLog()+"/n"+newLog);
+        }
+        debugHistoryDao.update(his);
+        return true;
+    }
+
+    public List<DebugHistory> getDebugHistoryList(Integer fileId) {
+       return  debugHistoryDao.list(fileId);
+    }
+
+    public DebugHistory addDebugHistory(Integer fileId,String runType){
+        DebugHistory his = new DebugHistory();
+        his.setStartTime(new Date());
+        his.setFileId(fileId);
+        his.setRunType("hive");
+        debugHistoryDao.save(his);
+        return his;
+    }
+
+    public void updateDebugHistory(DebugHistory his){
+        debugHistoryDao.update(his);
+    }
+
 }
