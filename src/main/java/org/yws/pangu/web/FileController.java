@@ -135,24 +135,32 @@ public class FileController {
     public
     @ResponseBody
     LogStatusWebBean gethistoryByFileId(Integer fileId) {
-        Long hisId = fileService.getFile(fileId, "1").getFileDescriptor().getHistory();
+        
         LogStatusWebBean wb;
-        System.out.println("######gethistoryByFileId"+fileId);
-
-        if (hisId == null) {
-            System.out.println("######hisId is null");
-            wb = new LogStatusWebBean("RUNNING", "");
-        } else {
-            DebugHistory his = fileService.getDebugHistory(hisId);
-            if(his.getLog()==null){
-                System.out.println("######Read from memory");
-                wb = new LogStatusWebBean(MemoryDebugHelper.JOB_STATUS_MAP.get(his.getFileId().toString()),
-                        MemoryDebugHelper.LOG_MAP.get(his.getFileId().toString()).toString());
-            }else{
-                System.out.println("######Read from db");
-                wb = new LogStatusWebBean(his.getStatus(), his.getLog());
-            }
+        String jobStatus = MemoryDebugHelper.JOB_STATUS_MAP.get(fileId.toString());
+        if(jobStatus==null){
+        	Long hisId = fileService.getFile(fileId, "1").getFileDescriptor().getHistory();
+        	DebugHistory his = fileService.getDebugHistory(hisId);
+        	wb = new LogStatusWebBean(his.getStatus(), his.getLog());
+        }else{
+        	wb = new LogStatusWebBean(MemoryDebugHelper.JOB_STATUS_MAP.get(fileId.toString()),MemoryDebugHelper.LOG_MAP.get(fileId.toString()).toString());
         }
+//        System.out.println("######gethistoryByFileId"+fileId);
+//
+//        if (hisId == null) {
+//            System.out.println("######hisId is null");
+//            wb = new LogStatusWebBean("RUNNING", "");
+//        } else {
+//            DebugHistory his = fileService.getDebugHistory(hisId);
+//            if(his.getLog()==null){
+//                System.out.println("######Read from memory");
+//                wb = new LogStatusWebBean(MemoryDebugHelper.JOB_STATUS_MAP.get(his.getFileId().toString()),
+//                        MemoryDebugHelper.LOG_MAP.get(his.getFileId().toString()).toString());
+//            }else{
+//                System.out.println("######Read from db");
+//                wb = new LogStatusWebBean(his.getStatus(), his.getLog());
+//            }
+//        }
         return wb;
     }
 

@@ -130,12 +130,11 @@ public class FileServiceImpl {
     }
 
     private boolean isRunning(Integer fileId,String owner) {
-        Long hisId=this.getFile(fileId,owner).getFileDescriptor().getHistory();
-        if(hisId!=null && "RUNNING".equals(this.getDebugHistory(hisId).getStatus())){
-            return true;
-        }else{
-            return false;
-        }
+    	if("RUNNING".equals(MemoryDebugHelper.JOB_STATUS_MAP.get(fileId.toString()))){
+    		return true;
+    	}else{
+    		return false;
+    	}
     }
 
     public String getContent(Integer fileId, String owner) {
