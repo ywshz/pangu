@@ -59,17 +59,17 @@ public class FileServiceImpl {
      *
      * @param fileId
      * @param owner
-     * @return history id
+     * @return history id : -2=is RUNNING error, -1=RUN FAILED , 1=execute success
      * @throws IOException
      */
-	public Long execute(Integer fileId,String owner) throws IOException {
+	public int execute(Integer fileId,String owner) throws IOException {
         FileBean fd = getFile(fileId,owner);
-		// write file
-		File file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
-		file.createNewFile();
-		BufferedWriter out = new BufferedWriter(new FileWriter(file));
-		out.write(fd.getFileDescriptor().getContent());
-		out.close();
+
+        if(isRunning(fileId,owner)){
+            return -2;
+        }
+
+        File file = generateTmpFile(fd);
 
 		// execute file
 		ProcessBuilder builder = new ProcessBuilder(HIVE_HOME + "/bin/hive", "-f",
@@ -117,10 +117,28 @@ public class FileServiceImpl {
 			process = null;
 		}
 
-		return fd.getFileDescriptor().getHistory();
+		return 1;
 	}
 
-	public String getContent(Integer fileId, String owner) {
+    private File generateTmpFile(FileBean fd) throws IOException {
+        File file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
+        file.createNewFile();
+        BufferedWriter out = new BufferedWriter(new FileWriter(file));
+        out.write(fd.getFileDescriptor().getContent());
+        out.close();
+        return file;
+    }
+
+    private boolean isRunning(Integer fileId,String owner) {
+        Long hisId=this.getFile(fileId,owner).getFileDescriptor().getHistory();
+        if(hisId!=null && "RUNNING".equals(this.getDebugHistory(hisId).getStatus())){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public String getContent(Integer fileId, String owner) {
 		return fileDao.getFile(fileId, owner).getContent();
 	}
 

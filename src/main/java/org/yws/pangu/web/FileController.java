@@ -79,21 +79,6 @@ public class FileController {
         return fileService.updateContent(fileId, content, owner);
     }
 
-    @RequestMapping(value = "run.do")
-    public
-    @ResponseBody
-    Long run(Integer fileId, String content) {
-
-        String owner = "1";
-        try {
-            //TODO:
-            fileService.updateContent(fileId, content, owner);
-            return fileService.execute(fileId, owner);
-        } catch (IOException e) {
-            return -1L;
-        }
-    }
-
     @RequestMapping(value = "add.do")
     public
     @ResponseBody
@@ -125,29 +110,56 @@ public class FileController {
         return list;
     }
 
+    @RequestMapping(value = "run.do")
+    public
+    @ResponseBody
+    ResponseBean run(Integer fileId, String content) {
+
+        String owner = "1";
+        try {
+            //TODO:
+            fileService.updateContent(fileId, content, owner);
+            int res = fileService.execute(fileId, owner);
+            if (res == 1) {
+                return new ResponseBean(true);
+            } else if (res == -2) {
+                return new ResponseBean(false, "This job is still running, please wait!");
+            }
+        } catch (IOException e) {
+            return new ResponseBean(false, "运行时发生异常." + e.getMessage());
+        }
+        return new ResponseBean(true);
+    }
+
     @RequestMapping(value = "gethistory.do", method = RequestMethod.POST)
     public
     @ResponseBody
-    LogStatusWebBean gethistory(Long historyId) {
-        LogStatusWebBean wb ;
-        DebugHistory his = fileService.getDebugHistory(historyId);
-        if( "RUNNING".equals(his.getStatus()) && MemoryDebugHelper.JOB_STATUS_MAP.get(his.getFileId())!=null){
-            wb = new LogStatusWebBean(MemoryDebugHelper.JOB_STATUS_MAP.get(his.getFileId()),
-                    MemoryDebugHelper.LOG_MAP.get(his.getFileId()).toString());
-        }else{
-            wb = new LogStatusWebBean(his.getStatus(),his.getLog());
+    LogStatusWebBean gethistoryByFileId(Integer fileId) {
+        Long hisId = fileService.getFile(fileId, "1").getFileDescriptor().getHistory();
+        LogStatusWebBean wb;
+        System.out.println("######gethistoryByFileId"+fileId);
+
+        if (hisId == null) {
+            System.out.println("######hisId is null");
+            wb = new LogStatusWebBean("RUNNING", "");
+        } else {
+            DebugHistory his = fileService.getDebugHistory(hisId);
+            if(his.getLog()==null){
+                System.out.println("######Read from memory");
+                wb = new LogStatusWebBean(MemoryDebugHelper.JOB_STATUS_MAP.get(his.getFileId().toString()),
+                        MemoryDebugHelper.LOG_MAP.get(his.getFileId().toString()).toString());
+            }else{
+                System.out.println("######Read from db");
+                wb = new LogStatusWebBean(his.getStatus(), his.getLog());
+            }
         }
         return wb;
     }
 
-    @RequestMapping(value = "isrun.do", method = RequestMethod.POST)
+    @RequestMapping(value = "gethistorylog.do", method = RequestMethod.POST)
     public
     @ResponseBody
-    boolean isrun(Integer fileId) {
-
-        String status = fileService.getDebugHistory(fileService.getFile(fileId, "1").getFileDescriptor().getHistory()).getStatus();
-
-        return "RUNNING".equals(status) ? true : false;
+    String gethistorylog(Long id) {
+        return fileService.getDebugHistory(id).getLog();
     }
-
 }
