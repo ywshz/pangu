@@ -60,4 +60,9 @@ public class MySqlFileDao {
 		return fd.getId();
 	}
 
+	public void delete(FileDescriptor file) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.delete(file);
+	}
+
 }

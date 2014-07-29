@@ -99,6 +99,7 @@ public class FileServiceImpl {
 		try {
 			exitCode = process.waitFor();
 			MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "END");
+			MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append("Job run success!\n");
             his.setEndTime(new Date());
             his.setLog(MemoryDebugHelper.LOG_MAP.get(fileId.toString()).toString());
             his.setStatus("END");
@@ -107,6 +108,7 @@ public class FileServiceImpl {
 
 		} catch (InterruptedException e) {
             MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "FAILED");
+            MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append("Job run failed!\n");
             his.setEndTime(new Date());
             his.setLog(MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append(e.getMessage()).toString());
             his.setStatus("FAILED");
@@ -191,5 +193,16 @@ public class FileServiceImpl {
     public void updateDebugHistory(DebugHistory his){
         debugHistoryDao.update(his);
     }
+
+	public boolean updateName(Integer id, String name, String owner) {
+		FileDescriptor fd = fileDao.getFile(id, owner);
+		fd.setName(name);
+		fileDao.update(fd);
+		return true;
+	}
+
+	public void delete(Integer id, String owner) {
+		fileDao.delete(fileDao.getFile(id, owner));
+	}
 
 }

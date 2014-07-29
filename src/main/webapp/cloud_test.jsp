@@ -62,9 +62,8 @@
                 </div>
                 <div id="rMenu" class="btn-group-vertical">
                     <button type="button" id="addFolderBtn" class="btn btn-default">创建文件夹</button>
-                    <button type="button" id="addFileBtn" class="btn btn-default">创建文件</button>
                     <button type="button" id="addHiveBtn" class="btn btn-default">创建Hive</button>
-                    <button type="button" id="addShellBtn" class="btn btn-default">创建Shell</button>
+                    <button type="button" id="rename-btn" class="btn btn-default">重命名</button>
                     <button type="button" id="deleteBtn" class="btn btn-default">删除</button>
                 </div>
             </div>
@@ -83,10 +82,6 @@
 
                                 <button type="button" class="btn btn-primary" id="run-btn">
                                     <span class="glyphicon glyphicon-play"></span>运行
-                                </button>
-
-                                <button type="button" class="btn btn-default" id="run-select-btn">
-                                    <span class="glyphicon glyphicon-ok"></span>运行选中
                                 </button>
 
                                 <button type="button" class="btn btn-default" id="public-var-btn">
@@ -108,7 +103,7 @@
                         </div>
                     </div>
                     <div class="panel panel-default console-panel">
-                        <div class="panel-heading">历史日志(最近10条)</div>
+                        <div class="panel-heading">历史日志(最近20条)</div>
                         <div class="panel-body">
                             <table class="table table-striped">
                                 <thead>
@@ -167,7 +162,7 @@
 <script src="${path }/bootstrap/js/bootstrap.min.js"></script>
 
 <script type="text/javascript" src="${path }/js/jquery.ztree.core-3.5.js"></script>
-
+<script type="text/javascript" src="${path }/js/jquery.ztree.exedit-3.5.js"></script>
 
 <script type="text/javascript">
 
@@ -186,12 +181,15 @@ function init() {
             },
             edit: {
                 enable: true,
-                showRemoveBtn: false,
-                showRenameBtn: false
+                showRemoveBtn: true,
+                showRenameBtn: true
             },
             callback: {
                 onRightClick: OnRightClick,
-                onClick: OnLeftClick
+                onClick: OnLeftClick,
+                onRename: zTreeOnRename,
+                onRemove: zTreeOnRemove,
+                beforeRemove: zTreeBeforeRemove
             }
         });
 
@@ -241,17 +239,46 @@ function viewLog(historyId){
 function resetToolBar() {
     $("#save-content-btn").attr("disabled", "disabled");
     $("#run-btn").attr("disabled", "disabled");
-    $("#run-select-btn").attr("disabled", "disabled");
     $("#editbox").attr("disabled", "disabled");
 }
 
 function initContextMenuFunction() {
     $("#addFolderBtn").bind("click", {isParent: true}, add);
-    $("#addFileBtn").bind("click", {isParent: false}, add);
     $("#addHiveBtn").bind("click", {isParent: false}, add);
-    $("#addShellBtn").bind("click", {isParent: false}, add);
-    $("#deleteBtn").bind("click", {isParent: false}, add);
+    $("#deleteBtn").bind("click", deleteNode);
+    $("#rename-btn").bind("click", rename);
 }
+
+function deleteNode(){
+	
+}
+
+function rename(){
+	var zTree = $.fn.zTree.getZTreeObj("tree"),
+	nodes = zTree.getSelectedNodes(),
+	treeNode = nodes[0];
+	zTree.editName(treeNode);
+	hideRMenu();
+}
+
+function zTreeOnRename(event, treeId, treeNode, isCancel) {
+	$.post("${path }/files/updatename.do", {id:treeNode.id,name:treeNode.name},function(res){
+		if(res) alert("重命名成功.");
+		else alert("重命名失败，请刷新页面重试.");
+	});
+}
+
+function zTreeBeforeRemove(treeId, treeNode) {
+	return confirm("确认删除？");
+}
+
+function zTreeOnRemove(event, treeId, treeNode) {
+	$.post("${path }/files/delete.do", {id:treeNode.id},function(res){
+		if(res) alert("删除成功.");
+		else alert("删除失败，请刷新页面重试.");
+	});
+}
+
 
 function hideRMenu() {
     if (rMenu) rMenu.css({"visibility": "hidden"});
@@ -306,7 +333,6 @@ function OnLeftClick(event, treeId, treeNode) {
             $("#editbox").removeAttr("disabled");
             $("#save-content-btn").removeAttr("disabled");
             $("#run-btn").removeAttr("disabled");
-            $("#run-select-btn").removeAttr("disabled");
             refreshHistoryView($("#editing-file-input").val());
         });
     } else {
@@ -331,8 +357,6 @@ function showRMenu(isFolder, x, y) {
         $("#addFolderBtn").hide();
         $("#addFileBtn").hide();
         $("#addHiveBtn").hide();
-        $("#addFileBtn").hide();
-        $("#addShellBtn").hide();
     }
 
     rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
