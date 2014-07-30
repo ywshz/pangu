@@ -126,10 +126,9 @@ public class FileController {
 		String owner = "1";
 		try {
 			// TODO:
-			content = DateRender.render(content);
 			fileService.updateContent(fileId, content, owner);
 			int res = fileService.execute(fileId, owner);
-			if (res == 1) {
+			if (res == 0) {
 				return new ResponseBean(true);
 			} else if (res == -2) {
 				return new ResponseBean(false,

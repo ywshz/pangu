@@ -69,7 +69,7 @@
             </div>
         </div>
 
-        <div class="col-md-9">
+        <div class="col-md-9" id="right-content-div">
             <div class="panel panel-default">
                 <div class="panel-body">
 
@@ -82,10 +82,6 @@
 
                                 <button type="button" class="btn btn-primary" id="run-btn">
                                     <span class="glyphicon glyphicon-play"></span>运行
-                                </button>
-
-                                <button type="button" class="btn btn-default" id="public-var-btn">
-                                    <span class="glyphicon glyphicon-wrench"></span>公共变量
                                 </button>
                             </div>
                             <div class="col-md-6 text-right">
@@ -196,6 +192,7 @@ function init() {
         zTree = $.fn.zTree.getZTreeObj("tree");
         rMenu = $("#rMenu");
         hideRMenu();
+        $("#right-content-div").hide();
     });
 
     resetToolBar();
@@ -335,11 +332,14 @@ function OnLeftClick(event, treeId, treeNode) {
             $("#run-btn").removeAttr("disabled");
             refreshHistoryView($("#editing-file-input").val());
         });
+        
+        $("#right-content-div").show();
     } else {
         resetToolBar();
         $("#op-info").text("");
         $("#editbox").val("");
         $("#editing-file-input").val("");
+        $("#history-tbody").html("");
     }
 }
 

@@ -8,6 +8,7 @@ import org.yws.pangu.domain.DebugHistory;
 import org.yws.pangu.domain.FileBean;
 import org.yws.pangu.domain.FileDescriptor;
 import org.yws.pangu.domain.OutputRedirector;
+import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.MemoryDebugHelper;
 
 import java.io.*;
@@ -59,7 +60,7 @@ public class FileServiceImpl {
      *
      * @param fileId
      * @param owner
-     * @return history id : -2=is RUNNING error, -1=RUN FAILED , 1=execute success
+     * @return history id : -2=is RUNNING error, -1=RUN FAILED , 0=execute success
      * @throws IOException
      */
 	public int execute(Integer fileId,String owner) throws IOException {
@@ -98,11 +99,18 @@ public class FileServiceImpl {
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
-			MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "END");
-			MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append("Job run success!\n");
+			
+			if(exitCode == 0){
+				MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append("Job run success!\n");
+				MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "SUCCESS");
+				his.setStatus("SUCCESS");
+			}else{
+				MemoryDebugHelper.LOG_MAP.get(fileId.toString()).append("Job run FAILED!\n");
+				MemoryDebugHelper.JOB_STATUS_MAP.put(fileId.toString(), "FAILED");
+				his.setStatus("FAILED");
+			}
             his.setEndTime(new Date());
             his.setLog(MemoryDebugHelper.LOG_MAP.get(fileId.toString()).toString());
-            his.setStatus("END");
 
             updateDebugHistory(his);
 
@@ -119,14 +127,14 @@ public class FileServiceImpl {
 			process = null;
 		}
 
-		return 1;
+		return exitCode;
 	}
 
     private File generateTmpFile(FileBean fd) throws IOException {
         File file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
         file.createNewFile();
         BufferedWriter out = new BufferedWriter(new FileWriter(file));
-        out.write(fd.getFileDescriptor().getContent());
+        out.write(DateRender.render(fd.getFileDescriptor().getContent()));
         out.close();
         return file;
     }

@@ -7,7 +7,7 @@ public class JobParam {
 	private String owner;
 	private String jobType;
 	private String content;
-	private String runType;
+	private Integer runType;
 	private String dependencies;
 	private String cron;
 	private Properties properties;
@@ -36,11 +36,11 @@ public class JobParam {
 		this.content = content;
 	}
 
-	public String getRunType() {
+	public Integer getRunType() {
 		return runType;
 	}
 
-	public void setRunType(String runType) {
+	public void setRunType(Integer runType) {
 		this.runType = runType;
 	}
 

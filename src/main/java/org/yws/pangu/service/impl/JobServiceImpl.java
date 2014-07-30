@@ -33,7 +33,7 @@ public class JobServiceImpl {
 		return groupDao.getRootGroup(owner);
 	}
 
-	public JobBean getJob(Long id) {
+	public JobBean getJob(Integer id) {
 		return jobDao.getJob(id);
 	}
 
@@ -43,5 +43,59 @@ public class JobServiceImpl {
 
 	public List<JobHistory> listJobHistory(Long jobId) {
 		return jobHistoryDao.list(jobId);
+	}
+
+	public Integer save(JobBean job) {
+		return jobDao.save(job);
+	}
+
+	public Integer save(JobGroup group) {
+		return groupDao.save(group);
+	}
+
+	public void updateGroupName(Integer id, String name) {
+		JobGroup group = groupDao.getGroup(id);
+		group.setName(name);
+		groupDao.update(group);
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @param owner
+	 * @return 1=delete success. -1=exception, 0=still have child items,not
+	 *         allow to delete it
+	 */
+	public int deleteGroup(Integer id, String owner) {
+		if (this.jobDao.list(id).size() > 0) {
+			return 0;
+		} else {
+			try {
+				groupDao.delete(groupDao.getGroup(id));
+			} catch (Exception e) {
+				return -1;
+			}
+			return 1;
+		}
+
+	}
+
+	/**
+	 * 
+	 * @param id job id
+	 * @return closed=job auto status set as closed, opened=job auto status set to opened
+	 */
+	public String updateJobAutoStatus(Integer id) {
+		String rs = null;
+		JobBean job = getJob(id);
+		if (JobBean.AUTO.equals(job.getAuto())) {
+			job.setAuto(JobBean.MANUAL);
+			rs="closed";
+		} else {
+			job.setAuto(JobBean.AUTO);
+			rs="opened";
+		}
+		updateJob(job);
+		return rs;
 	}
 }

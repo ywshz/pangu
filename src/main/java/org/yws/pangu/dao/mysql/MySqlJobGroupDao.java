@@ -33,4 +33,26 @@ public class MySqlJobGroupDao {
 		return (JobGroup) criteria.uniqueResult();
 	}
 
+	public Integer save(JobGroup group) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.save(group);
+		return group.getId();
+	}
+
+	public JobGroup getGroup(Integer id) {
+		Session session = sessionFacotry.getCurrentSession();
+		return (JobGroup) session.get(JobGroup.class, id);
+	}
+
+	public void update(JobGroup group) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.update(group);
+	}
+
+	public void delete(JobGroup group) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.delete(group);
+
+	}
+
 }

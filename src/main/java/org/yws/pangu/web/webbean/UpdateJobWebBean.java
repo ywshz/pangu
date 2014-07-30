@@ -7,19 +7,19 @@ public class UpdateJobWebBean implements Serializable {
 	/**  */
 	private static final long serialVersionUID = 1L;
 
-	private Long id;
+	private Integer id;
 	private String name;
 	private String runType;
-	private String scheduleType;
+	private Integer scheduleType;
 	private String cron;
 	private String dependencies;
 	private String script;
 
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -39,11 +39,11 @@ public class UpdateJobWebBean implements Serializable {
 		this.runType = runType;
 	}
 
-	public String getScheduleType() {
+	public Integer getScheduleType() {
 		return scheduleType;
 	}
 
-	public void setScheduleType(String scheduleType) {
+	public void setScheduleType(Integer scheduleType) {
 		this.scheduleType = scheduleType;
 	}
 

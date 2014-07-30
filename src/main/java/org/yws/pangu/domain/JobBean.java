@@ -12,12 +12,20 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "pangu_job")
-public class JobBean implements Serializable{
+public class JobBean implements Serializable {
+	public final static Integer AUTO = new Integer(1);
+	public final static Integer MANUAL = new Integer(0);
+	public final static String SHELL_JOB = "shell";
+	public final static String HIVE_JOB = "hive";
+	public final static Integer RUN_BY_TIME = new Integer(1);
+	public final static Integer RUN_BY_DEPENDENCY = new Integer(0);
+	
+
 	/**  */
 	private static final long serialVersionUID = -8367640586588912697L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+	private Integer id;
 	@Column
 	private Integer auto;
 	@Column(name = "cron_expression")
@@ -41,17 +49,17 @@ public class JobBean implements Serializable{
 	@Column(name = "run_type")
 	private String runType;
 	@Column(name = "schedule_type")
-	private String scheduleType;
+	private Integer scheduleType;
 	@Column(name = "script")
 	private String script;
 	@Column(name = "status")
 	private String status;
 
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -86,7 +94,6 @@ public class JobBean implements Serializable{
 	public void setDesc(String desc) {
 		this.desc = desc;
 	}
-
 
 	public Integer getGroupId() {
 		return groupId;
@@ -160,11 +167,11 @@ public class JobBean implements Serializable{
 		this.gmtModified = gmtModified;
 	}
 
-	public String getScheduleType() {
+	public Integer getScheduleType() {
 		return scheduleType;
 	}
 
-	public void setScheduleType(String scheduleType) {
+	public void setScheduleType(Integer scheduleType) {
 		this.scheduleType = scheduleType;
 	}
 

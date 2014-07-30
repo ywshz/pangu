@@ -66,7 +66,7 @@
             </div>
         </div>
 
-        <div class="col-md-9">
+        <div class="col-md-9" id="right-content-div">
             <div class="panel panel-default">
                 <div class="panel-body">
 
@@ -284,6 +284,7 @@
 
 <script type="text/javascript" src="${path }/js/jquery.ztree.core-3.5.js"></script>
 <script type="text/javascript" src="${path }/js/jquery.ztree.excheck-3.5.js"></script>
+<script type="text/javascript" src="${path }/js/jquery.ztree.exedit-3.5.js"></script>
 
 <script type="text/javascript">
 
@@ -292,6 +293,8 @@ $(document).ready(init);
 function init() {
     initLeftTree();
     initToolBar();
+    
+    $("#right-content-div").hide();
 }
 
 function initLeftTree() {
@@ -306,12 +309,15 @@ function initLeftTree() {
         },
         edit: {
             enable: true,
-            showRemoveBtn: false,
-            showRenameBtn: false
+            showRemoveBtn: showRemoveBtn,
+            showRenameBtn: showRenameBtn
         },
         callback: {
             onRightClick: OnRightClick,
-            onClick: OnLeftClick
+            onClick: OnLeftClick,
+            onRename: zTreeOnRename,
+            onRemove: zTreeOnRemove,
+            beforeRemove: zTreeBeforeRemove
         }
     });
 
@@ -320,6 +326,37 @@ function initLeftTree() {
     hideRMenu();
     initContextMenuFunction();
 }
+
+function showRenameBtn(treeId, treeNode){
+	return treeNode.isParent;
+}
+
+function showRemoveBtn(treeId, treeNode){
+	return treeNode.isParent;
+}
+
+function zTreeOnRename(event, treeId, treeNode, isCancel) {
+	$.post("${path }/jobs/updategroupname.do", {id:treeNode.id,name:treeNode.name},function(res){
+		if(res) alert("重命名成功.");
+		else alert("重命名失败，请刷新页面重试.");
+	});
+}
+
+function zTreeBeforeRemove(treeId, treeNode) {
+	return confirm("确认删除？");
+}
+
+function zTreeOnRemove(event, treeId, treeNode) {
+	$.post("${path }/jobs/deletegroup.do", {id:treeNode.id},function(res){
+		if(res.success) alert("删除成功.");
+		else {
+			zTree = $.fn.zTree.getZTreeObj("tree");
+			zTree.reAsyncChildNodes(zTree.getNodes()[0], "refresh", false);
+			alert(res.message);
+		}
+	});
+}
+
 
 function initToolBar() {
     $("#edit-btn").click(function () {
@@ -356,7 +393,21 @@ function initToolBar() {
 
     });
     $("#open-close-btn").click(function () {
-
+    	var org = $("#open-close-btn").html();
+    	$("#open-close-btn").attr("disabled","disabled");
+    	$("#open-close-btn").html("处理中...");
+    	$.post("${path }/jobs/openclosejob.do",{id:$("#viewing-job-input").val()},function(res){
+    		$("#open-close-btn").removeAttr("disabled","disabled");
+    		$("#open-close-btn").html(org);
+    		if("opened"==res) {
+    			$("#auto-td").html("开启");
+    			alert("开启成功");
+    		}
+    		if("closed"==res) {
+    			$("#auto-td").html("关闭");
+    			alert("关闭成功");
+    		}
+    	});
     });
     $("#delete-btn").click(function () {
 
@@ -422,8 +473,8 @@ function onBodyDown(event) {
 
 function initContextMenuFunction() {
     $("#add-group-btn").bind("click", {isParent: true}, add);
-    $("#add-job-btn").bind("click", {isParent: true}, add);
-    $("#delete-btn").bind("click", {isParent: false}, add);
+    $("#add-job-btn").bind("click", {isParent: false}, add);
+    $("#delete-btn").bind("click", deleteJob);
 }
 
 function hideRMenu() {
@@ -444,15 +495,23 @@ function add(e) {
         if (isParent) {
             name = "New Folder";
             type = "Folder";
+	        $.post("/jobs/addgroup.do", {"name": name, parentId: treeNode.id}, function (res) {
+	            if (res.success) {
+	                refreshNode("refresh", true);
+	            } else {
+	                alert("Error");
+	            }
+	        });
+        }else{
+        	$.post("/jobs/addjob.do", {"name": name, isParent: isParent, "type": type, "groupId": treeNode.id}, function (res) {
+	            if (res.success) {
+	                refreshNode("refresh", false);
+	            } else {
+	                alert("Error");
+	            }
+	        });
         }
 
-        $.post("/files/add.do", {"name": name, isParent: isParent, "type": type, "parentId": treeNode.id}, function (res) {
-            if (res.success) {
-                refreshNode("refresh", false);
-            } else {
-                alert("Error");
-            }
-        });
     }
 }
 ;
@@ -469,11 +528,16 @@ function refreshNode(type, silent) {
     }
 }
 
+function deleteJob(){
+	
+}
 
 function OnLeftClick(event, treeId, treeNode) {
     if (!treeNode.folder) {
         freshJobView(treeNode.id);
         refreshHistoryView(treeNode.id);
+        
+        $("#right-content-div").show();
     }
 }
 
@@ -486,8 +550,8 @@ function freshJobView(jobId) {
         $("#run-type-td").text(data.scheduleType == 1 ? "定时调度" : "依赖调度");
         $("#auto-td").text(data.auto == 0 ? "关闭" : "开启");
         $("#run-time-td").text(data.scheduleType == 1 ? data.cron : data.dependencies);
-        $("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
-
+        if(data.script) $("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
+        else $("#script-p").html("");
         $("#viewing-job-input").val(data.id);
 
         $("#inputName").val(data.name);
@@ -530,10 +594,6 @@ function OnRightClick(event, treeId, treeNode) {
 function showRMenu(isRoot, isFolder, x, y) {
     $("#rMenu button").show();
 
-    if (isRoot) {
-        $("#add-job-btn").hide();
-    }
-
     if (isFolder) {
         $("#add-group-btn").hide();
     } else {
@@ -541,6 +601,11 @@ function showRMenu(isRoot, isFolder, x, y) {
         $("#add-job-btn").hide();
     }
 
+    if (isRoot) {
+        $("#add-job-btn").hide();
+        $("#add-group-btn").show();
+    }
+    
     rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
 
     $("body").bind("mousedown", onBodyMouseDown);
