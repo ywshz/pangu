@@ -2,6 +2,7 @@ package org.yws.pangu.service.impl;
 
 import java.util.List;
 
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.dao.mysql.MySqlJobDao;
@@ -10,6 +11,7 @@ import org.yws.pangu.dao.mysql.MySqlJobHistoryDao;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.service.JobManager;
 
 @Service
 public class JobServiceImpl {
@@ -20,6 +22,8 @@ public class JobServiceImpl {
 	private MySqlJobDao jobDao;
 	@Autowired
 	private MySqlJobHistoryDao jobHistoryDao;
+	@Autowired
+	private JobManager jobManager;
 
 	public List<JobBean> jobList(Integer groupId) {
 		return jobDao.list(groupId);
@@ -82,19 +86,29 @@ public class JobServiceImpl {
 
 	/**
 	 * 
-	 * @param id job id
-	 * @return closed=job auto status set as closed, opened=job auto status set to opened
+	 * @param id
+	 *            job id
+	 * @return closed=job auto status set as closed, opened=job auto status set
+	 *         to opened
 	 */
 	public String updateJobAutoStatus(Integer id) {
 		String rs = null;
 		JobBean job = getJob(id);
-		if (JobBean.AUTO.equals(job.getAuto())) {
-			job.setAuto(JobBean.MANUAL);
-			rs="closed";
-		} else {
-			job.setAuto(JobBean.AUTO);
-			rs="opened";
+
+		try {
+			if (JobBean.AUTO.equals(job.getAuto())) {
+				job.setAuto(JobBean.MANUAL);
+				rs = "closed";
+				jobManager.removeJob(job);
+			} else {
+				job.setAuto(JobBean.AUTO);
+				rs = "opened";
+				jobManager.scheduleJob(job);
+			}
+		} catch (SchedulerException e) {
+			return "error";
 		}
+
 		updateJob(job);
 		return rs;
 	}
