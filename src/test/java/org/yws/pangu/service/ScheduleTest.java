@@ -15,7 +15,8 @@ public class ScheduleTest {
 
 	@Autowired
 	JobManager jobManager;
-
+	@Autowired
+	JobServiceImpl jobService;
 	@Test
 	public void schedule() throws InterruptedException, SchedulerException {
 
@@ -34,13 +35,33 @@ public class ScheduleTest {
 		
 		Thread.sleep(10000);
 		
-		jobManager.removeJob(jobBean);
+//		jobManager.removeJob(jobBean);
 		
 		Thread.sleep(10000);
 		
 		jobManager.scheduleJob(jobBean);
 		
 		Thread.sleep(10000);
+	}
+	
+	@Test
+	public void schedule1() throws Exception{
+		JobBean job5 = jobService.getJob(5);
+		JobBean job6 = jobService.getJob(6);
+		JobBean job7 = jobService.getJob(7);
+		JobBean job8 = jobService.getJob(8);
+		JobBean job9 = jobService.getJob(9);
+		jobManager.scheduleJob(job5);
+		jobManager.scheduleJob(job6);
+		jobManager.scheduleJob(job7);
+		jobManager.scheduleJob(job8);
+		jobManager.scheduleJob(job9);
+		
+		Thread.sleep(10000);
+		System.out.println("*********************");
+		jobManager.removeJob(job9);
+		
+		Thread.sleep(60000);
 	}
 	
 }

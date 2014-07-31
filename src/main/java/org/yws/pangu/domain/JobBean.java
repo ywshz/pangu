@@ -18,7 +18,7 @@ public class JobBean implements Serializable {
 	public final static String SHELL_JOB = "shell";
 	public final static String HIVE_JOB = "hive";
 	public final static Integer RUN_BY_TIME = new Integer(1);
-	public final static Integer RUN_BY_DEPENDENCY = new Integer(0);
+	public final static Integer RUN_BY_DEPENDENCY = new Integer(2);
 	
 
 	/**  */
