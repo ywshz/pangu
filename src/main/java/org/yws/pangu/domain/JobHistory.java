@@ -13,6 +13,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "pangu_job_history")
 public class JobHistory implements Serializable {
+	public static final Integer AUTO_TRIGGER = new Integer(1);
+	public static final Integer MANUAL_TRIGGER = new Integer(2);
+	
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -24,7 +27,7 @@ public class JobHistory implements Serializable {
 	@Column(name = "illustrate")
 	private String illustrate;
 	@Column(name = "job_id")
-	private Long jobId;
+	private Integer jobId;
 	@Column(name = "log")
 	private String log;
 	@Column(name = "status")
@@ -66,11 +69,11 @@ public class JobHistory implements Serializable {
 		this.illustrate = illustrate;
 	}
 
-	public Long getJobId() {
+	public Integer getJobId() {
 		return jobId;
 	}
 
-	public void setJobId(Long jobId) {
+	public void setJobId(Integer jobId) {
 		this.jobId = jobId;
 	}
 

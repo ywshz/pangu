@@ -1,5 +1,6 @@
 package org.yws.pangu.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import org.quartz.SchedulerException;
@@ -11,7 +12,10 @@ import org.yws.pangu.dao.mysql.MySqlJobHistoryDao;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.job.ManualHiveJob;
+import org.yws.pangu.job.ManualShellJob;
 import org.yws.pangu.service.JobManager;
+import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
 @Service
 public class JobServiceImpl {
@@ -45,8 +49,24 @@ public class JobServiceImpl {
 		jobDao.update(job);
 	}
 
-	public List<JobHistory> listJobHistory(Long jobId) {
+	public List<JobHistory> listJobHistory(Integer jobId) {
 		return jobHistoryDao.list(jobId);
+	}
+
+	public JobHistory createJobHistory(Integer jobId, Integer triggerType) {
+		JobBean job = getJob(jobId);
+		JobHistory history = new JobHistory();
+		history.setJobId(jobId);
+		history.setOperator(job.getOwner());
+		history.setStartTime(new Date());
+		history.setStatus(JobExecutionMemoryHelper.RUNNING);
+		history.setTriggerType(JobHistory.AUTO_TRIGGER);
+		jobHistoryDao.save(history);
+
+		job.setHistoryId(history.getId());
+		updateJob(job);
+
+		return history;
 	}
 
 	public Integer save(JobBean job) {
@@ -111,5 +131,41 @@ public class JobServiceImpl {
 
 		updateJob(job);
 		return rs;
+	}
+
+	public void updateHistory(JobHistory history) {
+		jobHistoryDao.update(history);
+	}
+
+	public JobHistory getHistory(Long historyId) {
+		return jobHistoryDao.get(historyId);
+	}
+
+	public boolean manualRun(Integer jobId) {
+		JobBean jobBean = getJob(jobId);
+		try {
+			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
+				new Thread(new ManualHiveJob(this, jobId)).run();
+			} else {
+				new Thread(new ManualShellJob(this, jobId)).run();
+			}
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+
+	}
+
+	public boolean resumeRun(Integer jobId) {
+		try {
+			jobManager.noWaitJob(jobId);
+		} catch (SchedulerException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public List<JobBean> getAllAutoRunJobs() {
+		return jobDao.getAutoRunJobs();
 	}
 }

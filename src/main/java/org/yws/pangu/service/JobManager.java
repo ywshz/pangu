@@ -6,6 +6,7 @@ import static org.quartz.impl.matchers.EverythingMatcher.allJobs;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,23 +20,19 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.Trigger;
-import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.domain.JobBean;
-import org.yws.pangu.job.TestJob;
+import org.yws.pangu.job.HiveJob;
+import org.yws.pangu.job.ShellJob;
 import org.yws.pangu.job.listener.JobExcutedListener;
 import org.yws.pangu.service.impl.JobServiceImpl;
 
 @Service
 @DependsOn("schedulerFactory")
 public class JobManager {
-	private static final String NORMAL_JOB = "NORMAL_JOB";
-	private static final String NOWAIT_JOB = "NOWAIT_JOB";
-	private static final String NORMAL_TRIGGER = "NORMAL_TRIGGER";
-	private static final String NOWAIT_TRIGGER = "NOWAIT_TRIGGER";
-
+	private static final String MANUAL = "MANUAL_";
 	@Autowired
 	private SchedulerFactory schedulerFactory;
 	@Autowired
@@ -47,57 +44,19 @@ public class JobManager {
 	@PostConstruct
 	public void init() throws SchedulerException {
 		this.scheduler = schedulerFactory.getScheduler();
-		this.scheduler.start();
+
 		JobExcutedListener lis = new JobExcutedListener(this);
 		scheduler.getListenerManager().addJobListener(lis, allJobs());
-		// scheduler.getListenerManager().addJobListener(lis, new
-		// Matcher<JobKey>() {
-		//
-		// /** */
-		// private static final long serialVersionUID = 1L;
-		//
-		// @Override
-		// public boolean isMatch(JobKey key) {
-		// return "NORMAL_JOB".equals(key.getGroup());
-		// }
-		// });
-		//
-		// scheduler.getListenerManager().addJobListener(new JobListener() {
-		//
-		// @Override
-		// public void jobWasExecuted(JobExecutionContext context,
-		// JobExecutionException jobException) {
-		// }
-		//
-		// @Override
-		// public void jobToBeExecuted(JobExecutionContext context) {
-		// }
-		//
-		// @Override
-		// public void jobExecutionVetoed(JobExecutionContext context) {
-		// try {
-		// removeNoWaitJob(Integer.valueOf(context.getJobDetail().getKey().getName()));
-		// } catch (NumberFormatException | SchedulerException e) {
-		// e.printStackTrace();
-		// }
-		// }
-		//
-		// @Override
-		// public String getName() {
-		// return "NOWAIT_JOB_LITENER";
-		// }
-		// }, new Matcher<JobKey>() {
-		//
-		// /** */
-		// private static final long serialVersionUID = 1L;
-		//
-		// @Override
-		// public boolean isMatch(JobKey key) {
-		// return "NO_WAIT_JOB".equals(key.getGroup());
-		// }
-		// });
 
 		// TODO: init all auto=1 jobs
+
+		List<JobBean> autoRunJobs = jobService.getAllAutoRunJobs();
+
+		for (JobBean job : autoRunJobs) {
+			scheduleJob(job);
+		}
+
+		this.scheduler.start();
 	}
 
 	public void scheduleJob(JobBean jobBean) throws SchedulerException {
@@ -105,11 +64,11 @@ public class JobManager {
 
 			JobDetail job = null;
 			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
-				job = JobBuilder.newJob(TestJob.class).withIdentity(jobBean.getId().toString())
+				job = JobBuilder.newJob(HiveJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 
 			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
-				job = JobBuilder.newJob(TestJob.class).withIdentity(jobBean.getId().toString())
+				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 			}
 
@@ -145,11 +104,11 @@ public class JobManager {
 		} else {
 			JobDetail job = null;
 			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
-				job = JobBuilder.newJob(TestJob.class).withIdentity(jobBean.getId().toString())
+				job = JobBuilder.newJob(HiveJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 
 			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
-				job = JobBuilder.newJob(TestJob.class).withIdentity(jobBean.getId().toString())
+				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 			}
 
@@ -173,12 +132,6 @@ public class JobManager {
 		removeJob(jobService.getJob(jobId));
 	}
 
-	//
-	// public void removeNoWaitJob(Integer jobId) throws SchedulerException {
-	// scheduler.deleteJob(new JobKey(jobId.toString()));
-	// }
-	//
-
 	public Map<String, Set<String>> getDependenciesMap() {
 		return dependenciesMap;
 	}
@@ -186,5 +139,4 @@ public class JobManager {
 	public Map<String, Set<String>> getWaitingMap() {
 		return waitingMap;
 	}
-
 }

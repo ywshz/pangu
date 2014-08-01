@@ -50,16 +50,16 @@ public class ScheduleTest {
 		JobBean job6 = jobService.getJob(6);
 		JobBean job7 = jobService.getJob(7);
 		JobBean job8 = jobService.getJob(8);
-		JobBean job9 = jobService.getJob(9);
+//		JobBean job9 = jobService.getJob(9);
 		jobManager.scheduleJob(job5);
 		jobManager.scheduleJob(job6);
 		jobManager.scheduleJob(job7);
 		jobManager.scheduleJob(job8);
-		jobManager.scheduleJob(job9);
+//		jobManager.scheduleJob(job9);
 		
 		Thread.sleep(10000);
 		System.out.println("*********************");
-		jobManager.removeJob(job9);
+//		jobManager.removeJob(job9);
 		
 		Thread.sleep(60000);
 	}

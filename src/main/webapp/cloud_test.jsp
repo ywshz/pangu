@@ -272,7 +272,11 @@ function zTreeBeforeRemove(treeId, treeNode) {
 function zTreeOnRemove(event, treeId, treeNode) {
 	$.post("${path }/files/delete.do", {id:treeNode.id},function(res){
 		if(res) alert("删除成功.");
-		else alert("删除失败，请刷新页面重试.");
+		else{
+			zTree = $.fn.zTree.getZTreeObj("tree");
+			zTree.reAsyncChildNodes(zTree.getNodes()[0], "refresh", false);
+			alert("不能删除根目录,或者仍有子节点的目录");
+		}
 	});
 }
 

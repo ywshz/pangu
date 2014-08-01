@@ -129,7 +129,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">脚本</div>
                             <div class="panel-body">
-                                <div id="console-div" style='height:200px;overflow: auto;'>
+                                <div id="script-div" style='height:200px;overflow: auto;'>
                                     <p id="script-p">?</p>
                                 </div>
                             </div>
@@ -137,7 +137,7 @@
                     </div>
 
                     <div class="panel panel-default console-panel">
-                        <div class="panel-heading">历史日志(最近10条)</div>
+                        <div class="panel-heading">历史日志(最近10条),<a href="javascript:void(0);" id="click-refresh-link">点击刷新</a></div>
                         <div class="panel-body">
                             <table class="table table-striped">
                                 <thead>
@@ -169,14 +169,6 @@
                                     <td>
                                         <button type="button" class="btn btn-default btn-xs">查看日志</button>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class=" text-right">
-                                        <div class="btn-group">
-                                            <button type="button" class="btn btn-default">上一页</button>
-                                            <button type="button" class="btn btn-default">下一页</button>
-                                        </div>
-                                    </th>
                                 </tr>
                                 </tbody>
                             </table>
@@ -272,6 +264,29 @@
     </div>
 </div>
 
+<div class="modal fade in" id="logModal" tabindex="-1" role="dialog"
+     aria-labelledby="logModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="editModalLabel">运行日志</h4>
+            </div>
+            <div class="modal-body">
+                <div id="log-div" style='height:400px;overflow: auto;'>
+                    <p id="log-his-p"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- /.container -->
 
 <input type="hidden" id="editing-file-input" value=""/>
@@ -295,6 +310,10 @@ function init() {
     initToolBar();
     
     $("#right-content-div").hide();
+    
+    $("#click-refresh-link").click(function(){
+    	 refreshHistoryView($("#viewing-job-input").val());
+    });
 }
 
 function initLeftTree() {
@@ -357,6 +376,53 @@ function zTreeOnRemove(event, treeId, treeNode) {
 	});
 }
 
+function refreshHistoryView(jobId) {
+    $.post("${path }/jobs/history.do", { jobId: jobId}, function (data) {
+        $("#history-tbody").html("");
+
+        $.each(data, function (key, his) {
+
+            var td = "<tr><td>" + his.id + "</td><td>" + his.status + "</td><td>" + his.startTime + "</td><td>" + his.endTime + "</td><td>";
+            td += '<button type="button" class="btn btn-default btn-xs" onclick="viewLog('+his.id+')">查看日志</button>';
+            if (his.status == "RUNNING" ) {
+                td += ',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
+            }
+            td += "</td></tr>"
+            $("#history-tbody").append(td);
+        });
+    });
+}
+
+function viewLog(historyId){
+    $.post("${path }/jobs/gethistorylog.do",{historyId:historyId},function(res){
+    	$("#log-his-p").html("");
+    	$("#logModal").modal("show");
+    	
+    	if (res.status == "SUCCESS" || res.status == "FAILED") {
+    		var cr = $("#log-his-p").html();
+            var nr = res.log.replace(/\n/g, "<br>");
+            $("#log-his-p").html(nr);
+            document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
+    	}else{
+    		 var timeId = setInterval(function () {
+    	            $.post("${path }/jobs/gethistorylog.do", {historyId:historyId}, function (res) {
+    	                var cr = $("#log-his-p").html();
+    	                var nr = res.log.replace(/\n/g, "<br>");
+    	                if (cr != nr) {
+    	                    $("#log-his-p").html(nr);
+    	                    document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
+    	                }
+    	                if (res.status == "SUCCESS" || res.status == "FAILED") {
+    	                    clearTimeout(timeId);
+    	                    refreshHistoryView($("#viewing-job-input").val());
+    	                }
+    	            });
+
+    	        }, 1000);
+    	}
+    	
+    });
+}
 
 function initToolBar() {
     $("#edit-btn").click(function () {
@@ -387,10 +453,23 @@ function initToolBar() {
     });
 
     $("#manual-run-btn").click(function () {
-
+    	$.post("${path }/jobs/manualrun.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		if(res){
+    			alert("已加入运行队列");
+    		}else{
+    			alert("ERROR:运行失败");
+    		}
+    	});
     });
+    
     $("#resume-run-btn").click(function () {
-
+    	$.post("${path }/jobs/resumerun.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		if(res){
+    			alert("已加入运行队列");
+    		}else{
+    			alert("ERROR:运行失败");
+    		}
+    	});
     });
     $("#open-close-btn").click(function () {
     	var org = $("#open-close-btn").html();
@@ -495,7 +574,7 @@ function add(e) {
         if (isParent) {
             name = "New Folder";
             type = "Folder";
-	        $.post("/jobs/addgroup.do", {"name": name, parentId: treeNode.id}, function (res) {
+	        $.post("${path }/jobs/addgroup.do", {"name": name, parentId: treeNode.id}, function (res) {
 	            if (res.success) {
 	                refreshNode("refresh", true);
 	            } else {
@@ -503,7 +582,7 @@ function add(e) {
 	            }
 	        });
         }else{
-        	$.post("/jobs/addjob.do", {"name": name, isParent: isParent, "type": type, "groupId": treeNode.id}, function (res) {
+        	$.post("${path }/jobs/addjob.do", {"name": name, isParent: isParent, "type": type, "groupId": treeNode.id}, function (res) {
 	            if (res.success) {
 	                refreshNode("refresh", false);
 	            } else {
@@ -558,32 +637,18 @@ function freshJobView(jobId) {
         $("#inputScheduleType").val(data.runType);
 
         if (data.scheduleType == 1) {
-            $("#radioSchedualByTime").attr("checked", "checked");
+            $("#radioSchedualByTime").prop("checked",true);
+            $("#radioSchedualByDependency").prop("checked",false);
             $("#inputCron").val(data.cron);
         } else {
-            $("#radioSchedualByDependency").attr("checked", "checked");
+        	$("#radioSchedualByTime").prop("checked",false);
+            $("#radioSchedualByDependency").prop("checked",true);
             $("#dependenciesSel").val(data.dependencies);
         }
         $("#edit-script").val(data.script);
     });
 }
 
-function refreshHistoryView(jobId) {
-    $.post("${path }/jobs/history.do", { jobId: jobId}, function (data) {
-        $("#history-tbody").html("");
-
-        $.each(data, function (key, his) {
-
-            var td = "<tr><td>"+his.id+"</td><td>"+his.status+"</td><td>"+his.startTime+"</td><td>"+his.endTime+"</td><td>";
-            td+='<button type="button" class="btn btn-default btn-xs">查看日志</button>';
-            if(his.status=="running"){
-                td+=',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
-            }
-            td+="</td></tr>"
-            $("#history-tbody").append(td);
-        });
-    });
-}
 
 function OnRightClick(event, treeId, treeNode) {
     if (treeNode == null) return;

@@ -1,5 +1,10 @@
 package org.yws.pangu.web;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,17 +15,11 @@ import org.yws.pangu.domain.FileBean;
 import org.yws.pangu.domain.FileDescriptor;
 import org.yws.pangu.domain.ResponseBean;
 import org.yws.pangu.service.impl.FileServiceImpl;
-import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.MemoryDebugHelper;
 import org.yws.pangu.web.webbean.DebugHistoryListItemWebBean;
 import org.yws.pangu.web.webbean.FileTreeWebBean;
 import org.yws.pangu.web.webbean.FileWebBean;
 import org.yws.pangu.web.webbean.LogStatusWebBean;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @RequestMapping(value = "/files")
 @Controller
@@ -87,8 +86,12 @@ public class FileController {
 	public @ResponseBody boolean delete(Integer id) {
 		// TODO:
 		String owner = "1";
-		fileService.delete(id, owner);
-		return true;
+		if(fileService.getFile(id, owner).getSubFiles().size()>0){
+			return false;
+		}else{
+			fileService.delete(id, owner);
+			return true;
+		}
 	}
 
 	@RequestMapping(value = "add.do")

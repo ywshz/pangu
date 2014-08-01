@@ -4,6 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.quartz.Calendar;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.Scheduler;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,11 +20,14 @@ import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.domain.ResponseBean;
+import org.yws.pangu.job.HiveJob;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateUtils;
+import org.yws.pangu.utils.JobExecutionMemoryHelper;
 import org.yws.pangu.web.webbean.JobHistoryListItemWebBean;
 import org.yws.pangu.web.webbean.JobTreeNodeWebBean;
 import org.yws.pangu.web.webbean.JobTreeWebBean;
+import org.yws.pangu.web.webbean.LogStatusWebBean;
 import org.yws.pangu.web.webbean.UpdateJobWebBean;
 
 @RequestMapping(value = "/jobs")
@@ -78,11 +89,16 @@ public class JobController {
 		// TODO:
 		String owner = "1";
 
+		JobGroup root = jobService.getRootGroup(owner);
+		if(root.getId().equals(id)){
+			return new ResponseBean(false, "该目录不允许删除");
+		}
+		
 		int res = jobService.deleteGroup(id, owner);
 		if (1 == res) {
 			return new ResponseBean(true);
 		} else if (0 == res) {
-			return new ResponseBean(false,"该目录还有job存在,不能删除");
+			return new ResponseBean(false, "该目录还有job存在,不能删除");
 		} else {
 			return new ResponseBean(false, "删除时候发生异常");
 		}
@@ -152,7 +168,7 @@ public class JobController {
 		job.setGmtModified(new Date());
 		job.setRunType(uJob.getRunType());
 		job.setScheduleType(uJob.getScheduleType());
-		if ("1".equals(job.getScheduleType())) {
+		if (JobBean.RUN_BY_TIME.equals(job.getScheduleType())) {
 			job.setCron(uJob.getCron());
 		} else {
 			job.setDependencies(uJob.getDependencies());
@@ -167,14 +183,14 @@ public class JobController {
 		}
 		return true;
 	}
-	
+
 	@RequestMapping(value = "openclosejob.do")
 	public @ResponseBody String openclosejob(Integer id) {
 		return jobService.updateJobAutoStatus(id);
 	}
 
 	@RequestMapping(value = "history.do")
-	public @ResponseBody Object history(Long jobId) {
+	public @ResponseBody Object history(Integer jobId) {
 		List<JobHistoryListItemWebBean> list = new ArrayList<JobHistoryListItemWebBean>();
 		for (JobHistory his : jobService.listJobHistory(jobId)) {
 			JobHistoryListItemWebBean wb = new JobHistoryListItemWebBean();
@@ -190,5 +206,34 @@ public class JobController {
 			list.add(wb);
 		}
 		return list;
+	}
+
+	@RequestMapping(value = "gethistorylog.do")
+	public @ResponseBody LogStatusWebBean gethistorylog(Long historyId) {
+		LogStatusWebBean wb;
+
+		if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId) != null) {
+			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId).toString();
+			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(historyId);
+
+			wb = new LogStatusWebBean(status, log);
+		} else {
+
+			JobHistory history = jobService.getHistory(historyId);
+			wb = new LogStatusWebBean(history.getStatus(), history.getLog());
+		}
+
+		return wb;
+
+	}
+
+	@RequestMapping(value = "manualrun.do")
+	public @ResponseBody boolean manualrun(Integer jobId) {
+		return jobService.manualRun(jobId);
+	}
+
+	@RequestMapping(value = "resumerun.do")
+	public @ResponseBody boolean resumerun(Integer jobId) {
+		return jobService.resumeRun(jobId);
 	}
 }

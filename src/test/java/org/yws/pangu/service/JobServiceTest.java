@@ -33,7 +33,7 @@ public class JobServiceTest {
 	
 	@Test
 	public void hisList(){
-		for (JobHistory g : jobService.listJobHistory(new Long(1))) {
+		for (JobHistory g : jobService.listJobHistory((1))) {
 			System.out.println(g.getStartTime());
 		}
 	}

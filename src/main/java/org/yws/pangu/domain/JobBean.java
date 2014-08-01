@@ -52,8 +52,6 @@ public class JobBean implements Serializable {
 	private Integer scheduleType;
 	@Column(name = "script")
 	private String script;
-	@Column(name = "status")
-	private String status;
 
 	public Integer getId() {
 		return id;
@@ -141,14 +139,6 @@ public class JobBean implements Serializable {
 
 	public void setScript(String script) {
 		this.script = script;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 	public Date getGmtCreate() {

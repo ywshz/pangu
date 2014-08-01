@@ -17,7 +17,7 @@ public class MySqlJobHistoryDao {
 	private SessionFactory sessionFacotry;
 
 	@SuppressWarnings("unchecked")
-	public List<JobHistory> list(Long jobId) {
+	public List<JobHistory> list(Integer jobId) {
 		Session session = sessionFacotry.getCurrentSession();
 
 		Criteria criteria = session.createCriteria(JobHistory.class);
@@ -26,5 +26,20 @@ public class MySqlJobHistoryDao {
 		criteria.setMaxResults(10);
 		return criteria.list();
 	}
-	
+
+	public void save(JobHistory history) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.save(history);
+	}
+
+	public void update(JobHistory history) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.update(history);
+	}
+
+	public JobHistory get(Long historyId) {
+		Session session = sessionFacotry.getCurrentSession();
+		return (JobHistory) session.get(JobHistory.class, historyId);
+	}
+
 }

@@ -25,6 +25,16 @@ public class MySqlJobDao {
 		return criteria.list();
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<JobBean> getAutoRunJobs() {
+		Session session = sessionFacotry.getCurrentSession();
+
+		Criteria criteria = session.createCriteria(JobBean.class);
+		criteria.add(Restrictions.eq("auto", JobBean.AUTO));
+
+		return criteria.list();
+	}
+	
 	public JobBean getJob(Integer id) {
 		Session session = sessionFacotry.getCurrentSession();
 

@@ -16,7 +16,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.LogOutputRedirector;
-import org.yws.pangu.service.impl.FileServiceImpl;
 import org.yws.pangu.utils.DateRender;
 
 public class RunHiveJob implements Job {
@@ -24,19 +23,6 @@ public class RunHiveJob implements Job {
 	private final String HIVE_HOME;
 	private final String HADOOP_HOME;
 
-	public static void main(String[] args) {
-		String path = "f:/1.hive";
-		try {
-			String script = new RunHiveJob().readFile(path);
-			script = DateRender.render(script);
-			logger.info("\n"+script);
-		} catch (IOException e) {
-			logger.error("Read File {} error", path);
-			return;
-		}
-		logger.info(path);
-		
-	}
 	public RunHiveJob() {
 		Properties props = new Properties();
 		try {

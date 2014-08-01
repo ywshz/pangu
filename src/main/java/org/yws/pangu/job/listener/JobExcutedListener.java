@@ -11,6 +11,7 @@ import org.yws.pangu.service.JobManager;
 
 public class JobExcutedListener implements JobListener {
 	private JobManager jobManager;
+	private byte[] lock = new byte[0];
 
 	public JobExcutedListener(JobManager jobManager) {
 		this.jobManager = jobManager;
@@ -32,23 +33,35 @@ public class JobExcutedListener implements JobListener {
 	@Override
 	public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
 
+		if(context.getJobDetail().getJobDataMap().get("RUN_SUCCESS")==Boolean.FALSE){
+			return;
+		}
+		
 		String jobId = context.getJobDetail().getKey().getName();
 
-		for (String key : jobManager.getWaitingMap().keySet()) {
-			Set<String> set = jobManager.getWaitingMap().get(key);
-			if (!set.isEmpty()) {
+		boolean isEmpty = false;
+		String runKey = null;
+		synchronized (lock) {
+			for (String key : jobManager.getWaitingMap().keySet()) {
+				Set<String> set = jobManager.getWaitingMap().get(key);
 				set.remove(jobId);
-			}
 
-			if (set.isEmpty()) {
-				try {
-					//reset waiting job info
-					jobManager.getWaitingMap().put(key, new HashSet<String>(jobManager.getDependenciesMap().get(key)));
-					jobManager.noWaitJob(Integer.valueOf(key));
-				} catch (SchedulerException e) {
-					e.printStackTrace();
+				if (set.isEmpty()) {
+					isEmpty = true;
+					runKey = key;
 				}
 			}
 		}
+		if (isEmpty) {
+			try {
+				// reset waiting job info
+				jobManager.getWaitingMap().put(runKey,
+						new HashSet<String>(jobManager.getDependenciesMap().get(runKey)));
+				jobManager.noWaitJob(Integer.valueOf(runKey));
+			} catch (SchedulerException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 }
