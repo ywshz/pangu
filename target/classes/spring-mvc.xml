@@ -10,7 +10,13 @@ http://www.springframework.org/schema/mvc
 http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd"
 	default-lazy-init="true">
 	<context:annotation-config />
-	<mvc:annotation-driven />
+	<mvc:annotation-driven>
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<constructor-arg value="UTF-8" />
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
 	<!--使Spring支持自动检测组件，如注解的Controller -->
 	<context:component-scan base-package="org.yws.pangu.web" />
 

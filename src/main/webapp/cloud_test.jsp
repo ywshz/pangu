@@ -25,6 +25,10 @@
 
     <link href="${path }/css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
 
+	<link rel="stylesheet" href="${path }/codemirror/lib/codemirror.css">
+	<script src="${path }/codemirror/lib/codemirror.js"></script>
+	<script src="${path }/codemirror/mode/sql/sql.js"></script>
+
     <style type="text/css">
         div#rMenu {
             position: fixed;
@@ -164,6 +168,7 @@
 
 $(document).ready(init);
 
+var editor;
 function init() {
     $(document).ready(function () {
         $.fn.zTree.init($("#tree"), {
@@ -192,6 +197,16 @@ function init() {
         zTree = $.fn.zTree.getZTreeObj("tree");
         rMenu = $("#rMenu");
         hideRMenu();
+        
+        editor = CodeMirror.fromTextArea(document.getElementById("editbox"), {
+            lineNumbers: true,
+            mode: 'text/x-hive',
+            indentWithTabs: true,
+            smartIndent: true,
+            matchBrackets : true,
+            autofocus: true
+         });
+        
         $("#right-content-div").hide();
     });
 
@@ -328,7 +343,8 @@ function refreshNode(type, silent) {
 function OnLeftClick(event, treeId, treeNode) {
     if (!treeNode.folder) {
         $.post("${path }/files/content.do", {fileId: treeNode.id}, function (data) {
-            $("#editbox").val(data);
+            //$("#editbox").val(data);
+            editor.setValue(data);
             $("#op-info").text("已打开: " + treeNode.name);
             $("#editing-file-input").val(treeNode.id);
             $("#editbox").removeAttr("disabled");
