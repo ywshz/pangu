@@ -20,11 +20,9 @@
     <title>盘古 -- 云测试</title>
 
     <link href="${path }/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-    <link href="<%=path %>/css/cloud_test.css" rel="stylesheet">
-
+    <link href="${path }/css/cloud_test.css" rel="stylesheet">
     <link href="${path }/css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
-
+	<link href="${path }/codemirror/lib/codemirror.css" rel="stylesheet" >
     <style type="text/css">
         div#rMenu {
             position: fixed;
@@ -129,9 +127,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">脚本</div>
                             <div class="panel-body">
-                                <div id="script-div" style='height:200px;overflow: auto;'>
-                                    <p id="script-p">?</p>
-                                </div>
+                            	<textarea id="script-p">?</textarea>
                             </div>
                         </div>
                     </div>
@@ -150,26 +146,6 @@
                                 </tr>
                                 </thead>
                                 <tbody id="history-tbody">
-                                <tr>
-                                    <td>123</td>
-                                    <td>运行中</td>
-                                    <td>2014/12/12 12:12:12</td>
-                                    <td></td>
-                                    <td>
-                                        <button type="button" class="btn btn-default btn-xs">查看日志</button>
-                                        ,
-                                        <button type="button" class="btn btn-primary btn-xs">取消任务</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>1</td>
-                                    <td>成功</td>
-                                    <td>2014/12/12 12:12:12</td>
-                                    <td>2014/12/12 12:14:12</td>
-                                    <td>
-                                        <button type="button" class="btn btn-default btn-xs">查看日志</button>
-                                    </td>
-                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -248,10 +224,7 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="col-sm-12">
-                            <textarea class="form-control" id="edit-script" name="script" rows="10"
-                                      draggable="false"></textarea>
-                        </div>
+						<textarea id="edit-script"></textarea>
                     </div>
                 </form>
 
@@ -296,395 +269,16 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="${path }/js/jquery-1.11.1.min.js"></script>
 <script src="${path }/bootstrap/js/bootstrap.min.js"></script>
-
+<script type="text/javascript">
+	var BASE_PATH='${path }';
+</script>
 <script type="text/javascript" src="${path }/js/jquery.ztree.core-3.5.js"></script>
 <script type="text/javascript" src="${path }/js/jquery.ztree.excheck-3.5.js"></script>
 <script type="text/javascript" src="${path }/js/jquery.ztree.exedit-3.5.js"></script>
+<script type="text/javascript" src="${path }/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="${path }/codemirror/mode/sql/sql.js"></script>
+<script type="text/javascript" src="${path }/js/cloud_job.js"></script>
 
-<script type="text/javascript">
-
-$(document).ready(init);
-
-function init() {
-    initLeftTree();
-    initToolBar();
-    
-    $("#right-content-div").hide();
-    
-    $("#click-refresh-link").click(function(){
-    	 refreshHistoryView($("#viewing-job-input").val());
-    });
-}
-
-function initLeftTree() {
-    $.fn.zTree.init($("#tree"), {
-        async: {
-            enable: true,
-            url: "${path }/jobs/list.do",
-            autoParam: ["id"]
-        },
-        view: {
-            selectedMulti: false
-        },
-        edit: {
-            enable: true,
-            showRemoveBtn: showRemoveBtn,
-            showRenameBtn: showRenameBtn
-        },
-        callback: {
-            onRightClick: OnRightClick,
-            onClick: OnLeftClick,
-            onRename: zTreeOnRename,
-            onRemove: zTreeOnRemove,
-            beforeRemove: zTreeBeforeRemove
-        }
-    });
-
-    zTree = $.fn.zTree.getZTreeObj("tree");
-    rMenu = $("#rMenu");
-    hideRMenu();
-    initContextMenuFunction();
-}
-
-function showRenameBtn(treeId, treeNode){
-	return treeNode.isParent;
-}
-
-function showRemoveBtn(treeId, treeNode){
-	return treeNode.isParent;
-}
-
-function zTreeOnRename(event, treeId, treeNode, isCancel) {
-	$.post("${path }/jobs/updategroupname.do", {id:treeNode.id,name:treeNode.name},function(res){
-		if(res) alert("重命名成功.");
-		else alert("重命名失败，请刷新页面重试.");
-	});
-}
-
-function zTreeBeforeRemove(treeId, treeNode) {
-	return confirm("确认删除？");
-}
-
-function zTreeOnRemove(event, treeId, treeNode) {
-	$.post("${path }/jobs/deletegroup.do", {id:treeNode.id},function(res){
-		if(res.success) alert("删除成功.");
-		else {
-			zTree = $.fn.zTree.getZTreeObj("tree");
-			zTree.reAsyncChildNodes(zTree.getNodes()[0], "refresh", false);
-			alert(res.message);
-		}
-	});
-}
-
-function refreshHistoryView(jobId) {
-    $.post("${path }/jobs/history.do", { jobId: jobId}, function (data) {
-        $("#history-tbody").html("");
-
-        $.each(data, function (key, his) {
-
-            var td = "<tr><td>" + his.id + "</td><td>" + his.status + "</td><td>" + his.startTime + "</td><td>" + his.endTime + "</td><td>";
-            td += '<button type="button" class="btn btn-default btn-xs" onclick="viewLog('+his.id+')">查看日志</button>';
-            if (his.status == "RUNNING" ) {
-                td += ',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
-            }
-            td += "</td></tr>"
-            $("#history-tbody").append(td);
-        });
-    });
-}
-
-function viewLog(historyId){
-    $.post("${path }/jobs/gethistorylog.do",{historyId:historyId},function(res){
-    	$("#log-his-p").html("");
-    	$("#logModal").modal("show");
-    	
-    	if (res.status == "SUCCESS" || res.status == "FAILED") {
-    		var cr = $("#log-his-p").html();
-            var nr = res.log.replace(/\n/g, "<br>");
-            $("#log-his-p").html(nr);
-            document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
-    	}else{
-    		 var timeId = setInterval(function () {
-    	            $.post("${path }/jobs/gethistorylog.do", {historyId:historyId}, function (res) {
-    	                var cr = $("#log-his-p").html();
-    	                var nr = res.log.replace(/\n/g, "<br>");
-    	                if (cr != nr) {
-    	                    $("#log-his-p").html(nr);
-    	                    document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
-    	                }
-    	                if (res.status == "SUCCESS" || res.status == "FAILED") {
-    	                    clearTimeout(timeId);
-    	                    refreshHistoryView($("#viewing-job-input").val());
-    	                }
-    	            });
-
-    	        }, 1000);
-    	}
-    	
-    });
-}
-
-function initToolBar() {
-    $("#edit-btn").click(function () {
-        $('#editModal').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-
-        $.fn.zTree.init($("#dependencyTree"), {
-            check: {
-                enable: true,
-                chkboxType: {"Y": "", "N": ""}
-            },
-            async: {
-                enable: true,
-                url: "${path }/jobs/list.do",
-                autoParam: ["id"]
-            },
-            view: {
-                dblClickExpand: false
-            },
-            callback: {
-                beforeClick: beforeClick,
-                onCheck: onCheck
-            }
-        });
-
-    });
-
-    $("#manual-run-btn").click(function () {
-    	$.post("${path }/jobs/manualrun.do",{jobId:$("#viewing-job-input").val()},function(res){
-    		if(res){
-    			alert("已加入运行队列");
-    		}else{
-    			alert("ERROR:运行失败");
-    		}
-    	});
-    });
-    
-    $("#resume-run-btn").click(function () {
-    	$.post("${path }/jobs/resumerun.do",{jobId:$("#viewing-job-input").val()},function(res){
-    		if(res){
-    			alert("已加入运行队列");
-    		}else{
-    			alert("ERROR:运行失败");
-    		}
-    	});
-    });
-    $("#open-close-btn").click(function () {
-    	var org = $("#open-close-btn").html();
-    	$("#open-close-btn").attr("disabled","disabled");
-    	$("#open-close-btn").html("处理中...");
-    	$.post("${path }/jobs/openclosejob.do",{id:$("#viewing-job-input").val()},function(res){
-    		$("#open-close-btn").removeAttr("disabled","disabled");
-    		$("#open-close-btn").html(org);
-    		if("opened"==res) {
-    			$("#auto-td").html("开启");
-    			alert("开启成功");
-    		}
-    		if("closed"==res) {
-    			$("#auto-td").html("关闭");
-    			alert("关闭成功");
-    		}
-    	});
-    });
-    $("#delete-btn").click(function () {
-
-    });
-    $("#update-job-btn").click(function () {
-        $.post("${path }/jobs/update.do", {
-                    id: $("#viewing-job-input").val(),
-                    name: $("#inputName").val(),
-                    runType: $("#inputScheduleType").val(),
-                    scheduleType: $('input[type="radio"][name="scheduleType"]:checked').val(),
-                    cron: $("#inputCron").val(),
-                    dependencies: $("#dependenciesSel").val(),
-                    script: $("#edit-script").val()
-                },
-                function (res) {
-                    if (res == false) {
-                        alert("操作失败!");
-                        return;
-                    }
-
-                    var zTree = $.fn.zTree.getZTreeObj("tree"),
-                            nodes = zTree.getSelectedNodes();
-                    nodes[0].name = $("#inputName").val() + "[" + $("#viewing-job-input").val() + "]";
-                    zTree.updateNode(nodes[0]);
-                    $('#editModal').modal('hide');
-                    freshJobView($("#viewing-job-input").val());
-                    alert("修改成功!");
-                });
-    });
-}
-
-function beforeClick(treeId, treeNode) {
-    var zTree = $.fn.zTree.getZTreeObj("dependencyTree");
-    zTree.checkNode(treeNode, !treeNode.checked, null, true);
-    return false;
-}
-
-function onCheck(e, treeId, treeNode) {
-    var zTree = $.fn.zTree.getZTreeObj("dependencyTree"),
-            nodes = zTree.getCheckedNodes(true),
-            v = "";
-    for (var i = 0, l = nodes.length; i < l; i++) {
-        v += nodes[i].id + ",";
-    }
-    if (v.length > 0) v = v.substring(0, v.length - 1);
-    $("#dependenciesSel").val(v);
-}
-
-function showMenu() {
-    $("#menuContent").show();
-    $("body").bind("mousedown", onBodyDown);
-}
-
-function hideMenu() {
-    $("#menuContent").hide();
-    $("body").unbind("mousedown", onBodyDown);
-}
-function onBodyDown(event) {
-    if (!(event.target.id == "dependenciesSel" || event.target.id == "menuContent" || $(event.target).parents("#menuContent").length > 0)) {
-        hideMenu();
-    }
-}
-
-function initContextMenuFunction() {
-    $("#add-group-btn").bind("click", {isParent: true}, add);
-    $("#add-job-btn").bind("click", {isParent: false}, add);
-    $("#delete-btn").bind("click", deleteJob);
-}
-
-function hideRMenu() {
-    if (rMenu) rMenu.css({"visibility": "hidden"});
-    $("body").unbind("mousedown", onBodyMouseDown);
-}
-
-function add(e) {
-    hideRMenu();
-
-    var zTree = $.fn.zTree.getZTreeObj("tree"),
-            isParent = e.data.isParent,
-            nodes = zTree.getSelectedNodes(),
-            treeNode = nodes[0];
-    if (treeNode) {
-        var name = "New File";
-        var type = "File";
-        if (isParent) {
-            name = "New Folder";
-            type = "Folder";
-	        $.post("${path }/jobs/addgroup.do", {"name": name, parentId: treeNode.id}, function (res) {
-	            if (res.success) {
-	                refreshNode("refresh", true);
-	            } else {
-	                alert("Error");
-	            }
-	        });
-        }else{
-        	$.post("${path }/jobs/addjob.do", {"name": name, isParent: isParent, "type": type, "groupId": treeNode.id}, function (res) {
-	            if (res.success) {
-	                refreshNode("refresh", false);
-	            } else {
-	                alert("Error");
-	            }
-	        });
-        }
-
-    }
-}
-;
-
-function refreshNode(type, silent) {
-    var zTree = $.fn.zTree.getZTreeObj("tree"),
-            nodes = zTree.getSelectedNodes();
-    if (nodes.length == 0) {
-        alert("请先选择一个父节点");
-    }
-    for (var i = 0, l = nodes.length; i < l; i++) {
-        zTree.reAsyncChildNodes(nodes[i], type, silent);
-        if (!silent) zTree.selectNode(nodes[i]);
-    }
-}
-
-function deleteJob(){
-	
-}
-
-function OnLeftClick(event, treeId, treeNode) {
-    if (!treeNode.folder) {
-        freshJobView(treeNode.id);
-        refreshHistoryView(treeNode.id);
-        
-        $("#right-content-div").show();
-    }
-}
-
-function freshJobView(jobId) {
-    $.post("${path }/jobs/get.do", { id: jobId}, function (data) {
-
-        $("#job-id-td").text(data.id);
-        $("#job-type-td").text(data.runType);
-        $("#name-td").text(data.name);
-        $("#run-type-td").text(data.scheduleType == 1 ? "定时调度" : "依赖调度");
-        $("#auto-td").text(data.auto == 0 ? "关闭" : "开启");
-        $("#run-time-td").text(data.scheduleType == 1 ? data.cron : data.dependencies);
-        if(data.script) $("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
-        else $("#script-p").html("");
-        $("#viewing-job-input").val(data.id);
-
-        $("#inputName").val(data.name);
-        $("#inputScheduleType").val(data.runType);
-
-        if (data.scheduleType == 1) {
-            $("#radioSchedualByTime").prop("checked",true);
-            $("#radioSchedualByDependency").prop("checked",false);
-            $("#inputCron").val(data.cron);
-        } else {
-        	$("#radioSchedualByTime").prop("checked",false);
-            $("#radioSchedualByDependency").prop("checked",true);
-            $("#dependenciesSel").val(data.dependencies);
-        }
-        $("#edit-script").val(data.script);
-    });
-}
-
-
-function OnRightClick(event, treeId, treeNode) {
-    if (treeNode == null) return;
-    zTree.selectNode(treeNode);
-    showRMenu(treeNode.isRoot, treeNode.folder, event.clientX, event.clientY);
-}
-
-function showRMenu(isRoot, isFolder, x, y) {
-    $("#rMenu button").show();
-
-    if (isFolder) {
-        $("#add-group-btn").hide();
-    } else {
-        $("#add-group-btn").hide();
-        $("#add-job-btn").hide();
-    }
-
-    if (isRoot) {
-        $("#add-job-btn").hide();
-        $("#add-group-btn").show();
-    }
-    
-    rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
-
-    $("body").bind("mousedown", onBodyMouseDown);
-}
-function hideRMenu() {
-    if (rMenu) rMenu.css({"visibility": "hidden"});
-    $("body").unbind("mousedown", onBodyMouseDown);
-}
-function onBodyMouseDown(event) {
-    if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length > 0)) {
-        rMenu.css({"visibility": "hidden"});
-    }
-}
-</script>
 
 </body>
 </html>

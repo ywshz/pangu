@@ -1,0 +1,408 @@
+$(document).ready(init);
+var editor,scriptView;
+function init() {
+    initLeftTree();
+    initToolBar();
+    initEditor();
+    $("#right-content-div").hide();
+    
+    $("#click-refresh-link").click(function(){
+    	 refreshHistoryView($("#viewing-job-input").val());
+    });
+}
+
+function initLeftTree() {
+    $.fn.zTree.init($("#tree"), {
+        async: {
+            enable: true,
+            url: BASE_PATH+"/jobs/list.do",
+            autoParam: ["id"]
+        },
+        view: {
+            selectedMulti: false
+        },
+        edit: {
+            enable: true,
+            showRemoveBtn: showRemoveBtn,
+            showRenameBtn: showRenameBtn
+        },
+        callback: {
+            onRightClick: OnRightClick,
+            onClick: OnLeftClick,
+            onRename: zTreeOnRename,
+            onRemove: zTreeOnRemove,
+            beforeRemove: zTreeBeforeRemove
+        }
+    });
+
+    zTree = $.fn.zTree.getZTreeObj("tree");
+    rMenu = $("#rMenu");
+    hideRMenu();
+    initContextMenuFunction();
+}
+
+function showRenameBtn(treeId, treeNode){
+	return treeNode.isParent;
+}
+
+function showRemoveBtn(treeId, treeNode){
+	return treeNode.isParent;
+}
+
+function zTreeOnRename(event, treeId, treeNode, isCancel) {
+	$.post(BASE_PATH+"/jobs/updategroupname.do", {id:treeNode.id,name:treeNode.name},function(res){
+		if(res) alert("重命名成功.");
+		else alert("重命名失败，请刷新页面重试.");
+	});
+}
+
+function zTreeBeforeRemove(treeId, treeNode) {
+	return confirm("确认删除？");
+}
+
+function zTreeOnRemove(event, treeId, treeNode) {
+	$.post(BASE_PATH+"/jobs/deletegroup.do", {id:treeNode.id},function(res){
+		if(res.success) alert("删除成功.");
+		else {
+			zTree = $.fn.zTree.getZTreeObj("tree");
+			zTree.reAsyncChildNodes(zTree.getNodes()[0], "refresh", false);
+			alert(res.message);
+		}
+	});
+}
+
+function refreshHistoryView(jobId) {
+    $.post(BASE_PATH+"/jobs/history.do", { jobId: jobId}, function (data) {
+        $("#history-tbody").html("");
+
+        $.each(data, function (key, his) {
+
+            var td = "<tr><td>" + his.id + "</td><td>" + his.status + "</td><td>" + his.startTime + "</td><td>" + his.endTime + "</td><td>";
+            td += '<button type="button" class="btn btn-default btn-xs" onclick="viewLog('+his.id+')">查看日志</button>';
+            if (his.status == "RUNNING" ) {
+                td += ',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
+            }
+            td += "</td></tr>"
+            $("#history-tbody").append(td);
+        });
+    });
+}
+
+function viewLog(historyId){
+    $.post(BASE_PATH+"/jobs/gethistorylog.do",{historyId:historyId},function(res){
+    	$("#log-his-p").html("");
+    	$("#logModal").modal("show");
+    	
+    	if (res.status == "SUCCESS" || res.status == "FAILED") {
+    		var cr = $("#log-his-p").html();
+            var nr = res.log.replace(/\n/g, "<br>");
+            $("#log-his-p").html(nr);
+            document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
+    	}else{
+    		 var timeId = setInterval(function () {
+    	            $.post(BASE_PATH+"/jobs/gethistorylog.do", {historyId:historyId}, function (res) {
+    	                var cr = $("#log-his-p").html();
+    	                var nr = res.log.replace(/\n/g, "<br>");
+    	                if (cr != nr) {
+    	                    $("#log-his-p").html(nr);
+    	                    document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
+    	                }
+    	                if (res.status == "SUCCESS" || res.status == "FAILED") {
+    	                    clearTimeout(timeId);
+    	                    refreshHistoryView($("#viewing-job-input").val());
+    	                }
+    	            });
+
+    	        }, 1000);
+    	}
+    	
+    });
+}
+
+function initToolBar() {
+    $("#edit-btn").click(function () {
+        $('#editModal').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+        //从隐藏层显示,需要延迟刷新,否则仍无法正常显示
+        setTimeout(function(){
+        	editor.refresh();
+        },200);
+    });
+    
+    $.fn.zTree.init($("#dependencyTree"), {
+    	check: {
+    		enable: true,
+    		chkboxType: {"Y": "", "N": ""}
+    	},
+    	async: {
+    		enable: true,
+    		url: BASE_PATH+"/jobs/list.do",
+    		autoParam: ["id"]
+    	},
+    	view: {
+    		dblClickExpand: false
+    	},
+    	callback: {
+    		beforeClick: beforeClick,
+    		onCheck: onCheck
+    	}
+    });
+
+    $("#manual-run-btn").click(function () {
+    	$.post(BASE_PATH+"/jobs/manualrun.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		if(res){
+    			alert("已加入运行队列");
+    		}else{
+    			alert("ERROR:运行失败");
+    		}
+    	});
+    });
+    
+    $("#resume-run-btn").click(function () {
+    	$.post(BASE_PATH+"/jobs/resumerun.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		if(res){
+    			alert("已加入运行队列");
+    		}else{
+    			alert("ERROR:运行失败");
+    		}
+    	});
+    });
+    $("#open-close-btn").click(function () {
+    	var org = $("#open-close-btn").html();
+    	$("#open-close-btn").attr("disabled","disabled");
+    	$("#open-close-btn").html("处理中...");
+    	$.post(BASE_PATH+"/jobs/openclosejob.do",{id:$("#viewing-job-input").val()},function(res){
+    		$("#open-close-btn").removeAttr("disabled","disabled");
+    		$("#open-close-btn").html(org);
+    		if("opened"==res) {
+    			$("#auto-td").html("开启");
+    			alert("开启成功");
+    		}
+    		if("closed"==res) {
+    			$("#auto-td").html("关闭");
+    			alert("关闭成功");
+    		}
+    	});
+    });
+    $("#delete-btn").click(function () {
+
+    });
+    $("#update-job-btn").click(function () {
+        $.post(BASE_PATH+"/jobs/update.do", {
+                    id: $("#viewing-job-input").val(),
+                    name: $("#inputName").val(),
+                    runType: $("#inputScheduleType").val(),
+                    scheduleType: $('input[type="radio"][name="scheduleType"]:checked').val(),
+                    cron: $("#inputCron").val(),
+                    dependencies: $("#dependenciesSel").val(),
+                    script: editor.getValue()
+                },
+                function (res) {
+                    if (res == false) {
+                        alert("操作失败!");
+                        return;
+                    }
+
+                    var zTree = $.fn.zTree.getZTreeObj("tree"),
+                            nodes = zTree.getSelectedNodes();
+                    nodes[0].name = $("#inputName").val() + "[" + $("#viewing-job-input").val() + "]";
+                    zTree.updateNode(nodes[0]);
+                    $('#editModal').modal('hide');
+                    freshJobView($("#viewing-job-input").val());
+                    alert("修改成功!");
+                });
+    });
+}
+
+
+function initEditor(){
+	editor = CodeMirror.fromTextArea(document.getElementById("edit-script"), {
+		lineNumbers : true,
+		mode : 'text/x-hive',
+		indentWithTabs : true,
+		smartIndent : true,
+		matchBrackets : true,
+		autofocus : true,
+		width: '100%',
+        height: '400px'
+	});
+	
+	scriptView = CodeMirror.fromTextArea(document.getElementById("script-p"), {
+		lineNumbers : true,
+		mode : 'text/x-hive',
+		indentWithTabs : true,
+		smartIndent : true,
+		matchBrackets : true,
+		autofocus : true,
+		readOnly : true,
+	});
+}
+
+function beforeClick(treeId, treeNode) {
+    var zTree = $.fn.zTree.getZTreeObj("dependencyTree");
+    zTree.checkNode(treeNode, !treeNode.checked, null, true);
+    return false;
+}
+
+function onCheck(e, treeId, treeNode) {
+    var zTree = $.fn.zTree.getZTreeObj("dependencyTree"),
+            nodes = zTree.getCheckedNodes(true),
+            v = "";
+    for (var i = 0, l = nodes.length; i < l; i++) {
+        v += nodes[i].id + ",";
+    }
+    if (v.length > 0) v = v.substring(0, v.length - 1);
+    $("#dependenciesSel").val(v);
+}
+
+function showMenu() {
+    $("#menuContent").show();
+    $("body").bind("mousedown", onBodyDown);
+}
+
+function hideMenu() {
+    $("#menuContent").hide();
+    $("body").unbind("mousedown", onBodyDown);
+}
+function onBodyDown(event) {
+    if (!(event.target.id == "dependenciesSel" || event.target.id == "menuContent" || $(event.target).parents("#menuContent").length > 0)) {
+        hideMenu();
+    }
+}
+
+function initContextMenuFunction() {
+    $("#add-group-btn").bind("click", {isParent: true}, add);
+    $("#add-job-btn").bind("click", {isParent: false}, add);
+    $("#delete-btn").bind("click", deleteJob);
+}
+
+function hideRMenu() {
+    if (rMenu) rMenu.css({"visibility": "hidden"});
+    $("body").unbind("mousedown", onBodyMouseDown);
+}
+
+function add(e) {
+    hideRMenu();
+
+    var zTree = $.fn.zTree.getZTreeObj("tree"),
+            isParent = e.data.isParent,
+            nodes = zTree.getSelectedNodes(),
+            treeNode = nodes[0];
+    if (treeNode) {
+        var name = "新文件";
+        var type = "File";
+        if (isParent) {
+            name = "新目录";
+            type = "Folder";
+	        $.post(BASE_PATH+"/jobs/addgroup.do", {"name": name, parentId: treeNode.id}, function (res) {
+	            if (res.success) {
+	                refreshNode("refresh", true);
+	            } else {
+	                alert("Error");
+	            }
+	        });
+        }else{
+        	$.post(BASE_PATH+"/jobs/addjob.do", {"name": name, isParent: isParent, "type": type, "groupId": treeNode.id}, function (res) {
+	            if (res.success) {
+	                refreshNode("refresh", false);
+	            } else {
+	                alert("Error");
+	            }
+	        });
+        }
+
+    }
+}
+;
+
+function refreshNode(type, silent) {
+    var zTree = $.fn.zTree.getZTreeObj("tree"),
+            nodes = zTree.getSelectedNodes();
+    if (nodes.length == 0) {
+        alert("请先选择一个父节点");
+    }
+    for (var i = 0, l = nodes.length; i < l; i++) {
+        zTree.reAsyncChildNodes(nodes[i], type, silent);
+        if (!silent) zTree.selectNode(nodes[i]);
+    }
+}
+
+function deleteJob(){
+	
+}
+
+function OnLeftClick(event, treeId, treeNode) {
+    if (!treeNode.folder) {
+        freshJobView(treeNode.id);
+        refreshHistoryView(treeNode.id);
+        
+        $("#right-content-div").show();
+    }
+}
+
+function freshJobView(jobId) {
+    $.post(BASE_PATH+"/jobs/get.do", { id: jobId}, function (data) {
+
+        $("#job-id-td").text(data.id);
+        $("#job-type-td").text(data.runType);
+        $("#name-td").text(data.name);
+        $("#run-type-td").text(data.scheduleType == 1 ? "定时调度" : "依赖调度");
+        $("#auto-td").text(data.auto == 0 ? "关闭" : "开启");
+        $("#run-time-td").text(data.scheduleType == 1 ? data.cron : data.dependencies);
+//        if(data.script) $("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
+        scriptView.setValue(data.script);
+        $("#viewing-job-input").val(data.id);
+
+        $("#inputName").val(data.name);
+        $("#inputScheduleType").val(data.runType);
+
+        if (data.scheduleType == 1) {
+            $("#radioSchedualByTime").prop("checked",true);
+            $("#radioSchedualByDependency").prop("checked",false);
+            $("#inputCron").val(data.cron);
+        } else {
+        	$("#radioSchedualByTime").prop("checked",false);
+            $("#radioSchedualByDependency").prop("checked",true);
+            $("#dependenciesSel").val(data.dependencies);
+        }
+        editor.setValue(data.script);
+    });
+}
+
+
+function OnRightClick(event, treeId, treeNode) {
+    if (treeNode == null) return;
+    zTree.selectNode(treeNode);
+    showRMenu(treeNode.isRoot, treeNode.folder, event.clientX, event.clientY);
+}
+
+function showRMenu(isRoot, isFolder, x, y) {
+    $("#rMenu button").show();
+
+    if (isFolder) {
+        $("#add-group-btn").hide();
+    } else {
+        $("#add-group-btn").hide();
+        $("#add-job-btn").hide();
+    }
+
+    if (isRoot) {
+        $("#add-job-btn").hide();
+        $("#add-group-btn").show();
+    }
+    
+    rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
+
+    $("body").bind("mousedown", onBodyMouseDown);
+}
+function hideRMenu() {
+    if (rMenu) rMenu.css({"visibility": "hidden"});
+    $("body").unbind("mousedown", onBodyMouseDown);
+}
+function onBodyMouseDown(event) {
+    if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length > 0)) {
+        rMenu.css({"visibility": "hidden"});
+    }
+}
