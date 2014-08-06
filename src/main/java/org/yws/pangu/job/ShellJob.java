@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -23,6 +24,7 @@ import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
 public class ShellJob implements Job {
+	protected static final int MAX_STORE_LINES = 10000;
 	private static Logger logger = LoggerFactory.getLogger(RunShellJob.class);
 
 	@Override
@@ -71,6 +73,8 @@ public class ShellJob implements Job {
 		final InputStream inputStream = process.getInputStream();
 		final InputStream errorStream = process.getErrorStream();
 
+		final AtomicInteger lineCount = new AtomicInteger(0);
+
 		Thread normal = new Thread() {
 			@Override
 			public void run() {
@@ -79,8 +83,14 @@ public class ShellJob implements Job {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -96,8 +106,14 @@ public class ShellJob implements Job {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -108,7 +124,7 @@ public class ShellJob implements Job {
 		normal.start();
 		error.start();
 
-		while(normal.isAlive() || error.isAlive()){
+		while (normal.isAlive() || error.isAlive()) {
 			try {
 				Thread.sleep(1000);
 				System.out.println("Runing , waiting 1s");
@@ -116,7 +132,7 @@ public class ShellJob implements Job {
 				e.printStackTrace();
 			}
 		}
-		
+
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
@@ -137,7 +153,7 @@ public class ShellJob implements Job {
 
 			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 					JobExecutionMemoryHelper.SUCCESS);
-			
+
 			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.TRUE);
 		} else {
 			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("Job run FAILED \n");
@@ -149,7 +165,7 @@ public class ShellJob implements Job {
 
 			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 					JobExecutionMemoryHelper.FAILED);
-			
+
 			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.FALSE);
 		}
 

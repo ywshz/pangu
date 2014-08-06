@@ -142,18 +142,12 @@ public class JobServiceImpl {
 	}
 
 	public boolean manualRun(Integer jobId) {
-		JobBean jobBean = getJob(jobId);
 		try {
-			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
-				new Thread(new ManualHiveJob(this, jobId)).run();
-			} else {
-				new Thread(new ManualShellJob(this, jobId)).run();
-			}
+			jobManager.noScheduleJob(jobId);
 		} catch (Exception e) {
 			return false;
 		}
 		return true;
-
 	}
 
 	public boolean resumeRun(Integer jobId) {

@@ -9,7 +9,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.JobBean;
@@ -19,19 +23,18 @@ import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
-public class ManualShellJob implements Runnable {
+public class ManualShellJob implements Job {
+	protected static final int MAX_STORE_LINES = 10000;
 	private static Logger logger = LoggerFactory.getLogger(RunShellJob.class);
 
-	private JobServiceImpl jobService;
-	private Integer jobId;
-
-	public ManualShellJob(JobServiceImpl jobService, Integer jobId) {
-		this.jobId = jobId;
-		this.jobService = jobService;
-	}
-
 	@Override
-	public void run() {
+	public void execute(JobExecutionContext context) throws JobExecutionException {
+
+		JobServiceImpl jobService = (JobServiceImpl) context.getJobDetail().getJobDataMap()
+				.get("JobService");
+		Integer jobId = Integer.valueOf(context.getJobDetail().getKey().getName()
+				.replace("MANUAL_", ""));
+
 		JobBean jobBean = jobService.getJob(jobId);
 
 		File file = null;
@@ -71,6 +74,8 @@ public class ManualShellJob implements Runnable {
 		final InputStream inputStream = process.getInputStream();
 		final InputStream errorStream = process.getErrorStream();
 
+		final AtomicInteger lineCount = new AtomicInteger(0);
+
 		Thread normal = new Thread() {
 			@Override
 			public void run() {
@@ -79,8 +84,14 @@ public class ManualShellJob implements Runnable {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -96,8 +107,14 @@ public class ManualShellJob implements Runnable {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -108,7 +125,7 @@ public class ManualShellJob implements Runnable {
 		normal.start();
 		error.start();
 
-		while(normal.isAlive() || error.isAlive()){
+		while (normal.isAlive() || error.isAlive()) {
 			try {
 				Thread.sleep(1000);
 				System.out.println("Runing , waiting 1s");
@@ -116,7 +133,7 @@ public class ManualShellJob implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
@@ -126,7 +143,6 @@ public class ManualShellJob implements Runnable {
 			process = null;
 		}
 
-		
 		if (exitCode == 0) {
 			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID)
 					.append("Job run SUCCESS \n");

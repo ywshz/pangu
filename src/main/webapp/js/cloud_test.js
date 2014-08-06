@@ -9,6 +9,10 @@ function init() {
 	initToolbar();
 	
 	$("#right-content-div").hide();
+	
+	 $("#click-refresh-link").click(function(){
+    	 refreshHistoryView($("#editing-file-input").val());
+    });
 }
 
 function initLeftNavTree(){
@@ -234,7 +238,7 @@ function runBtnClick() {
 
     var timeId = setInterval(function () {
         $.post(BASE_PATH+"/files/gethistory.do", {fileId: $("#editing-file-input").val()}, function (res) {
-            if (res.status == "END" || res.status == "FAILED") {
+            if (res.status == "SUCCESS" || res.status == "FAILED") {
                 clearTimeout(timeId);
                 $("#op-info").val("运行结束");
                 $("#run-btn").removeAttr("disabled");

@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -23,19 +24,14 @@ import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
-public class ManualHiveJob implements Runnable {
+public class ManualHiveJob implements Job {
+	protected static final int MAX_STORE_LINES = 10000;
 	private static Logger logger = LoggerFactory.getLogger(RunHiveJob.class);
 	private final String HIVE_HOME;
 	private final String HADOOP_HOME;
 
-	private JobServiceImpl jobService;
-	private Integer jobId;
-	
-	public ManualHiveJob(JobServiceImpl jobService, Integer jobId) {
-		
-		this.jobId=jobId;
-		this.jobService=jobService;
-		
+	public ManualHiveJob() {
+
 		Properties props = new Properties();
 		try {
 			props.load(RunHiveJob.class.getResourceAsStream("/pangu-config.properties"));
@@ -49,8 +45,20 @@ public class ManualHiveJob implements Runnable {
 	}
 
 	@Override
-	public void run() {
-		
+	public void execute(JobExecutionContext context) throws JobExecutionException {
+
+		JobServiceImpl jobService = (JobServiceImpl) context.getJobDetail().getJobDataMap()
+				.get("JobService");
+		String jobIdStr = ((String) context.getJobDetail().getJobDataMap().get("JobId"));
+
+		Integer jobId = null;
+		if (jobIdStr == null) {
+			jobId = Integer.valueOf(context.getJobDetail().getKey().getName()
+					.replace("MANUAL_", ""));
+		} else {
+			jobId = Integer.valueOf(jobIdStr);
+		}
+
 		JobBean jobBean = jobService.getJob(jobId);
 
 		// //////////////
@@ -73,7 +81,7 @@ public class ManualHiveJob implements Runnable {
 		// ////////////
 		JobHistory history = jobService.createJobHistory(jobId, JobHistory.AUTO_TRIGGER);
 
-		final Long HISTORY_ID = history.getId();
+		final Long HISTORY_ID = -1 * history.getId();
 
 		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
 				"Job start...\n"));
@@ -94,6 +102,8 @@ public class ManualHiveJob implements Runnable {
 		final InputStream inputStream = process.getInputStream();
 		final InputStream errorStream = process.getErrorStream();
 
+		final AtomicInteger lineCount = new AtomicInteger(0);
+
 		Thread normal = new Thread() {
 			@Override
 			public void run() {
@@ -102,8 +112,14 @@ public class ManualHiveJob implements Runnable {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -119,8 +135,14 @@ public class ManualHiveJob implements Runnable {
 					BufferedReader br = new BufferedReader(isr);
 					String line = null;
 					while ((line = br.readLine()) != null) {
-						JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-								line + "\n");
+						int curr = lineCount.getAndIncrement();
+						if (curr < MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									line + "\n");
+						} else if (curr == MAX_STORE_LINES) {
+							JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+									"该任务LOG已有1万条,为减少内存占用,停止记录\n");
+						}
 					}
 				} catch (IOException ioE) {
 					ioE.printStackTrace();
@@ -131,7 +153,7 @@ public class ManualHiveJob implements Runnable {
 		normal.start();
 		error.start();
 
-		while(normal.isAlive() || error.isAlive()){
+		while (normal.isAlive() || error.isAlive()) {
 			try {
 				Thread.sleep(1000);
 				System.out.println("Runing , waiting 1s");
@@ -139,8 +161,7 @@ public class ManualHiveJob implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
 		int exitCode = -999;
 		try {
 			exitCode = process.waitFor();
@@ -161,6 +182,8 @@ public class ManualHiveJob implements Runnable {
 
 			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 					JobExecutionMemoryHelper.SUCCESS);
+
+			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.TRUE);
 		} else {
 			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("Job run FAILED \n");
 
@@ -171,9 +194,12 @@ public class ManualHiveJob implements Runnable {
 
 			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 					JobExecutionMemoryHelper.FAILED);
+
+			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.FALSE);
 		}
 
 		JobExecutionMemoryHelper.jobLogMemoryHelper.remove(HISTORY_ID);
 		JobExecutionMemoryHelper.jobStatusMemoryHelper.remove(HISTORY_ID);
 	}
+
 }

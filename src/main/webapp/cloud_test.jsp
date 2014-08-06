@@ -96,7 +96,7 @@
                         </div>
                     </div>
                     <div class="panel panel-default console-panel">
-                        <div class="panel-heading">历史日志(最近20条)</div>
+                        <div class="panel-heading">历史日志(最近20条)<a href="javascript:void(0);" id="click-refresh-link">点击刷新</a></div>
                         <div class="panel-body">
                             <table class="table table-striped">
                                 <thead>

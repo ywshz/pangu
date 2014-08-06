@@ -151,17 +151,29 @@ function initToolBar() {
     });
 
     $("#manual-run-btn").click(function () {
+    	var org = $("#manual-run-btn").html();
+    	$("#manual-run-btn").attr("disabled","disabled");
+    	setTimeout(function(){
+    		refreshHistoryView($("#viewing-job-input").val());
+    	},2000)
     	$.post(BASE_PATH+"/jobs/manualrun.do",{jobId:$("#viewing-job-input").val()},function(res){
-    		if(res){
-    			alert("已加入运行队列");
-    		}else{
-    			alert("ERROR:运行失败");
-    		}
+    		alert("已进入任务队列");
+    		$("#manual-run-btn").removeAttr("disabled");
+    		$("#manual-run-btn").html(org);
+    		refreshHistoryView($("#viewing-job-input").val());
     	});
     });
     
     $("#resume-run-btn").click(function () {
+    	var org =$("#resume-run-btn").html();
+    	$("#resume-run-btn").attr("disabled","disabled");
+    	$("#resume-run-btn").html("运行中...");
+    	setTimeout(function(){
+    		refreshHistoryView($("#viewing-job-input").val());
+    	},2000)
     	$.post(BASE_PATH+"/jobs/resumerun.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		$("#resume-run-btn").removeAttr("disabled");
+    		$("#resume-run-btn").html(org);
     		if(res){
     			alert("已加入运行队列");
     		}else{
@@ -352,7 +364,7 @@ function freshJobView(jobId) {
         $("#auto-td").text(data.auto == 0 ? "关闭" : "开启");
         $("#run-time-td").text(data.scheduleType == 1 ? data.cron : data.dependencies);
 //        if(data.script) $("#script-p").html(data.script.replace(/\n/gi, "<br/>").replace(/\r/gi, "<br/>"));
-        scriptView.setValue(data.script);
+        scriptView.setValue(data.script==null?"":data.script);
         $("#viewing-job-input").val(data.id);
 
         $("#inputName").val(data.name);
@@ -367,7 +379,7 @@ function freshJobView(jobId) {
             $("#radioSchedualByDependency").prop("checked",true);
             $("#dependenciesSel").val(data.dependencies);
         }
-        editor.setValue(data.script);
+        editor.setValue(data.script==null?"":data.script);
     });
 }
 

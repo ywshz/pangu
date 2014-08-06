@@ -15,7 +15,11 @@ import javax.annotation.PostConstruct;
 import org.quartz.CronTrigger;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
+import org.quartz.JobListener;
+import org.quartz.Matcher;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
@@ -25,6 +29,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.job.HiveJob;
+import org.yws.pangu.job.ManualHiveJob;
+import org.yws.pangu.job.ManualShellJob;
 import org.yws.pangu.job.ShellJob;
 import org.yws.pangu.job.listener.JobExcutedListener;
 import org.yws.pangu.service.impl.JobServiceImpl;
@@ -48,7 +54,39 @@ public class JobManager {
 		JobExcutedListener lis = new JobExcutedListener(this);
 		scheduler.getListenerManager().addJobListener(lis, allJobs());
 
-		// TODO: init all auto=1 jobs
+		scheduler.getListenerManager().addJobListener(new JobListener() {
+
+			@Override
+			public void jobWasExecuted(JobExecutionContext context,
+					JobExecutionException jobException) {
+				try {
+					scheduler.deleteJob(context.getJobDetail().getKey());
+				} catch (SchedulerException e) {
+				}
+			}
+
+			@Override
+			public void jobToBeExecuted(JobExecutionContext context) {
+			}
+
+			@Override
+			public void jobExecutionVetoed(JobExecutionContext context) {
+			}
+
+			@Override
+			public String getName() {
+				return "NO_SHCEDULE_JOB";
+			}
+		}, new Matcher<JobKey>() {
+
+			/**  */
+			private static final long serialVersionUID = -7993829482735351176L;
+
+			@Override
+			public boolean isMatch(JobKey key) {
+				return key.getName().startsWith(MANUAL);
+			}
+		});
 
 		List<JobBean> autoRunJobs = jobService.getAllAutoRunJobs();
 
@@ -117,6 +155,28 @@ public class JobManager {
 
 			Trigger trigger = newTrigger().withIdentity(jobBean.getId().toString()).startNow()
 					.build();
+
+			scheduler.scheduleJob(job, trigger);
+		}
+	}
+
+	public void noScheduleJob(Integer jobId) throws SchedulerException {
+		JobBean jobBean = jobService.getJob(jobId);
+		String jobKeyId = MANUAL + jobId.toString();
+		if (scheduler.checkExists(new JobKey(jobKeyId))) {
+			scheduler.triggerJob(new JobKey(jobKeyId));
+		} else {
+			JobDetail job = null;
+			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
+				job = JobBuilder.newJob(ManualHiveJob.class).withIdentity(jobKeyId).build();
+
+			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
+				job = JobBuilder.newJob(ManualShellJob.class).withIdentity(jobKeyId).build();
+			}
+
+			job.getJobDataMap().put("JobService", jobService);
+
+			Trigger trigger = newTrigger().withIdentity(jobKeyId).startNow().build();
 
 			scheduler.scheduleJob(job, trigger);
 		}
