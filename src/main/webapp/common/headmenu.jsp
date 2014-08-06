@@ -20,6 +20,8 @@
 				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/hdfs_browse.jsp">HDFS文件管理</a></li>
 				<li class="${page=='topics'?active:'' }"><a
+					href="${path }/hive_browse.jsp">HIVE管理</a></li>
+				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/cloud_test.jsp">云测试</a></li>
 				<li class="${page=='topics'?active:'' }"><a
 					href="${path }/cloud_job.jsp">云调度</a></li>
