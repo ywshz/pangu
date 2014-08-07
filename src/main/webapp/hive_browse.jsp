@@ -8,13 +8,6 @@ pageContext.setAttribute("path",path);
 pageContext.setAttribute("basePath",basePath);    
 %>
 
-
-<%
-    if(request.getAttribute("files")==null){
-        request.getRequestDispatcher("/hdfs_browse/list.do").forward(request,response);
-    }
-%>
-
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
@@ -27,8 +20,7 @@ pageContext.setAttribute("basePath",basePath);
 <title>Pangu HIVE browse</title>
 
 <link href="${path }/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-<link href="<%=path %>/css/hdfs_browse.css" rel="stylesheet">
+<link href="${path }/css/hdfs_browse.css" rel="stylesheet">
 
 <!-- Just for debugging purposes. Don't actually copy this line! -->
 <!--[if lt IE 9]><script src="${path }/bootstrap/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -46,109 +38,92 @@ pageContext.setAttribute("basePath",basePath);
 	<div class="container">
 		
 		<div class="row action-div">
-			<div class="col-md-12">
-				选择数据库:<select>
-					<option>Default</option>
-				</select>
-				<input type="button" value="确定">
+			
+			<form class="form-horizontal" role="form">
+					<div class="form-group">
+						<label class="col-sm-1 control-label">数据库:</label>
+						<div class="col-sm-3">
+							<select class="form-control" id="db-select">
+							</select>
+						</div>
+						<div class="col-sm-2">
+							<input type="button" class="btn btn-default" id="db-selected-btn" value="确定">
+						</div>
+					</div>
+			</form>
+
+		</div>
+
+		<div id="table-info-div">
+			<div class="row">
+			<div class="col-md-3" id="table-group-div">
+				当前选择数据库:<label id="viewing-db-label">1</label>
+				<div class="list-group" id="table-list-div">
+				</div>
+			</div>
+			<div class="col-md-9" id="table-detail-div">
+				<table class="table table-condensed table-hover table-bordered">
+					<tbody>
+						<tr>
+							<td>表名</td>
+							<td id="table-name-td"></td>
+							<td>类型</td>
+							<td id="table-type-td"></td>
+						</tr>
+						<tr>
+							<td>拥有者</td>
+							<td id="table-owner-td"></td>
+							<td>创建时间</td>
+							<td id="table-createtime-td"></td>
+						</tr>
+						<tr>
+							<td>输入格式</td>
+							<td colspan="3" id="table-inputformat-td"></td>
+						</tr>
+						<tr>
+							<td>输出格式</td>
+							<td colspan="3" id="table-outformat-td"></td>
+						</tr>
+						<tr>
+							<td>路径</td>
+							<td colspan="3" id="table-localtion-td"></td>
+						</tr>
+					 </tbody>
+				</table>
+				
+				列信息:
+				<table class="table table-condensed table-hover table-bordered">
+					<thead>
+				        <tr>
+				          <th>名称</th>
+				          <th>类型</th>
+				          <th>注释</th>
+				        </tr>
+				    </thead>
+					<tbody id="column-tbody">
+					 </tbody>
+				</table>
+				
+				分区信息:
+				<table class="table table-condensed table-hover table-bordered">
+					<thead>
+				        <tr>
+				          <th>名称</th>
+				          <th>类型</th>
+				          <th>注释</th>
+				        </tr>
+				    </thead>
+					<tbody id="partition-tbody">
+					 </tbody>
+				</table>
 			</div>
 		</div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="div-result">
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th><input type="checkbox" class="check-all"></th>
-                            <th>文件名</th>
-                            <th>类型</th>
-                            <th>大小</th>
-                            <th>修改时间</th>
-                            <th>拥有者</th>
-                            <th>操作</th>
-                        </tr>
-                        </thead>
-                        <tbody class="table-tbody">
-                        <c:forEach items="${files}" var="file">
-                            <tr>
-                                <td><input type="checkbox" name="fileCheck" value="${current_path}${file.name}"></td>
-                                <td><a href="#" class="item-name-href">${file.name}</a></td>
-                                <td>${file.type}</td>
-                                <td>${file.sizeInM}</td>
-                                <td>${file.modificationTime}</td>
-                                <td>${file.owner}</td>
-                                <td>
-                                	<!-- 
-                                    <button type="button" class="btn-delete-item btn btn-default btn-xs" data="${file.name}">删除</button>
-                                	 -->
-                                    <button type="button" class="btn-move-item btn btn-default btn-xs" data="${file.name}">移动</button>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
+	</div>
 	</div>
 	<!-- /.container -->
 
-	<!-- 移动文件/文件夹  Modal -->
-	<div class="modal fade" id="moveFileModal" tabindex="-1" role="dialog" aria-labelledby="moveFileModalLabel" aria-hidden="true">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-body">
-	        <form class="form-horizontal" role="form">
-			  <div class="form-group">
-			    <label for="inputEmail3" class="col-sm-2 control-label">原路径</label>
-			    <div class="col-sm-10">
-			      <input type="text" class="form-control" id="srcPathInput" disabled>
-			    </div>
-			  </div>
-			  <div class="form-group">
-			    <label for="inputPassword3" class="col-sm-2 control-label">新路径</label>
-			    <div class="col-sm-10">
-			      <input type="text" class="form-control" id="dstPathInput">
-			    </div>
-			  </div>
-			  <div class="form-group text-right">
-			    <div class="col-sm-offset-2 col-sm-10">
-			    	<button type="button" class="btn-move-cancel btn btn-default">取消</button>
-			      	<button type="button" class="btn-move-confirm btn btn-primary">移动</button>
-			    </div>
-			  </div>
-			</form>
-	      </div>
-	    </div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->
-	
-	
-	<!-- 移动文件/文件夹  Modal -->
-	<div class="modal fade" id="multiMoveFileModal" tabindex="-1" role="dialog" aria-labelledby="multiMoveFileModalLabel" aria-hidden="true">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-body">
-	        <form class="form-horizontal" role="form">
-			  <div class="form-group">
-			    <label for="inputPassword3" class="col-sm-2 control-label">目标目录</label>
-			    <div class="col-sm-10">
-			      <input type="text" class="form-control" id="multiDstPathInput">
-			    </div>
-			  </div>
-			  <div class="form-group text-right">
-			    <div class="col-sm-offset-2 col-sm-10">
-			    	<button type="button" class="btn-multimove-cancel btn btn-default">取消</button>
-			      	<button type="button" class="btn-multimove-confirm btn btn-primary">移动</button>
-			    </div>
-			  </div>
-			</form>
-	      </div>
-	    </div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->
-	
+	<input type="hidden" id="select-db-input" value="">
+	<input type="hidden" id="select-table-input" value="">
 	
 	<!-- Bootstrap core JavaScript
     ================================================== -->
@@ -156,138 +131,61 @@ pageContext.setAttribute("basePath",basePath);
 	<script src="${path }/js/jquery-1.11.1.min.js"></script>
 	<script src="${path }/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript">
-        $(document).ready(init);
-        function init(){
-            $(".check-all").click(function(){
-                var flag = this.checked;
-                $(".table-tbody input[type='checkbox']").each(function () {//查找每一个Id以Item结尾的checkbox
-                    $(this).prop("checked",flag);
-                });
-
-            });
-
-            $(".table-tbody input[type='checkbox']").click(function(){
-                if ($(".table-tbody input[type='checkbox']:checked").length == $(".table-tbody input[type='checkbox']").length) {
-                    $(".check-all").prop("checked","checked");
-                }
-                else $(".check-all").removeAttr("checked");
-            });
-
-
-            $(".item-name-href").click(function(target){
-                var org = $("#current_path").val();
-
-                $("#nextPath").val(org+this.innerText);
-
-                $("#enterFolderForm").submit();
-
-            });
-            
-            /*
-            $(".btn-delete-item").click(function(){
-            	var org = $("#current_path").val();
-            	
-            	if(window.confirm("确认删除吗?")){
-	                
-            		$.post("/hdfs_browse/delete.do",{path:org+$(this).attr("data")},function(res){
-            			if(res.success){
-            				self.location="/hdfs_browse/list.do?path="+org;
-            			}else{
-            				alert("删除失败,"+res.errorMessage);
-            			}
-            		});
-            	}
-            });
-            */
-            $(".btn-move-item").click(function(){
-            	var org = $("#current_path").val();
-            	$("#srcPathInput").val(org+$(this).attr("data"));
-            	$("#dstPathInput").val(org+$(this).attr("data"));
-            	$("#moveFileModal").modal({backdrop:'static'},"show");
-            });
-            
-            $("#goBtn").click(function(){
-            	$("#nextPath").val($("#hdfsPathInput").val());
-            	$("#enterFolderForm").submit();
-            });
-            
-            $(".btn-move-confirm").click(function(){
-            	var src=$("#srcPathInput").val();
-            	var dst=$("#dstPathInput").val();
-            	if(src==dst){
-            		alert("输入不同路径");
-            	}else{
-            		$.post("/hdfs_browse/rename.do",{src:src,dst:dst},function(res){
-            			if(res.success){
-            				self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
-            			}else{
-            				alert("移动失败,"+res.errorMessage);
-            			}
-            		});
-            	}
-            });
-            $(".btn-move-cancel").click(function(){
-            	$("#moveFileModal").modal("hide");
-            });
-            
-            $(".btn-multimove-confirm").click(function(){
-            	var pathes = "";
-				$("input[name=fileCheck]:checked").each(function(i){
-					pathes+=$(this).val()+",";
+        $(document).ready(function(){
+        	$("#table-group-div").hide();
+        	$("#table-detail-div").hide();
+        	
+        	$.post("${path }/hive/databases.do",function(res){
+        		$("#db-select").append("<option value='default'>==先选择数据库==</option>");
+        		for(var i in res){
+	        		$("#db-select").append("<option value='"+res[i]+"'>"+res[i]+"</option>");
+                } 
+        	});
+        	
+        	$("#db-selected-btn").click(function(){
+        		$("#table-group-div").show();
+        		$("#table-detail-div").hide();
+        		$("#viewing-db-label").html($("#db-select").val());
+        		
+        		$("#select-db-input").val($("#db-select").val());
+        		$.post("${path }/hive/tables.do",{db:$("#db-select").val()},function(res){
+        			$("#table-list-div").html("");
+            		for(var i in res){
+    	        		$("#table-list-div").append('<a href="javascript:void(0);" class="list-group-item">'+res[i]+'</a>');
+                    } 
+            		
+	        		$(".list-group-item").click(function(){
+	        			$(".list-group-item").removeClass("active");
+	        			$(this).addClass("active");
+	        			
+	        			$.post("${path }/hive/table.do",{db:$("#select-db-input").val(),table:this.text},function(res){
+	        				$("#table-detail-div").show();
+	        				
+	        				$("#table-name-td").html(res.tableName);
+	        				$("#table-type-td").html(res.tableType);
+	        				$("#table-owner-td").html(res.owner);
+	        				$("#table-createtime-td").html(res.createTime);
+	        				$("#table-inputformat-td").html(res.inputFormat);
+	        				$("#table-outformat-td").html(res.outputFormat);
+	        				$("#table-localtion-td").html(res.location);
+	        				
+	        				$("#column-tbody").html("");
+	        				for(var i in res.columns){
+	        					var line = "<tr><td>"+res.columns[i].name+"</td><td>"+res.columns[i].type+"</td><td>"+res.columns[i].comment+"</td></tr>";
+	        					$("#column-tbody").append(line);
+	        				}
+	        				
+	        				$("#partition-tbodybody").html("");
+							for(var i in res.partitions){
+								var line = "<tr><td>"+res.partitions[i].name+"</td><td>"+res.partitions[i].type+"</td><td>"+res.partitions[i].comment+"</td></tr>";
+								$("#partition-tbody").append(line);
+	        				}
+	        			});
+	        		});
             	});
-				
-				$.post("/hdfs_browse/multi_rename.do",{"pathes":pathes,"dst":$("#multiDstPathInput").val()},function(res){
-					alert(res.message);
-					self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
-				});
-            });
-            
-            $(".btn-multimove-cancel").click(function(){
-            	$("#multiMoveFileModal").modal("hide");
-            });
-            
-            
-            $("#goUpBtn").click(function(){
-            	$("#nextPath").val($("#parent_path").val());
-            	$("#enterFolderForm").submit();
-            });
-            
-            $("#multi_move_link").click(function(){
-            	if($("input[name=fileCheck]:checked").length==0){
-            		alert("请先做选择");
-            	}else{
-	            	$("#multiMoveFileModal").modal("show");
-            	}
-            });
-            
-            /*
-            $("#multi_delete_link").click(function(){
-            	var cbs = $("input[name=fileCheck]:checked");
-            	if(cbs.length==0){
-            		alert("请先做选择");
-            	}else{
-	            	var pathes = "";
-					cbs.each(function(i){
-						pathes+=$(this).val()+",";
-	            	});
-					
-					$.post("/hdfs_browse/multi_delete.do",{"pathes":pathes},function(res){
-						alert(res.message);
-						self.location="/hdfs_browse/list.do?path="+$("#current_path").val();
-					});
-            	}
-            });
-            */
-            $(".form-horizontal").submit(function(){return false;});
-        }
-        
+        		
+        	});
+        });
     </script>
-
-    <form id="enterFolderForm" action="${path }/hdfs_browse/list.do" method="post">
-        <input type="hidden" id="nextPath" name="path" value="">
-    </form>
-
-    <input type="hidden" id="current_path" value="${current_path}">
-    <input type="hidden" id="parent_path" value="${parent_path}">
 </body>
 </html>
