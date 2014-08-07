@@ -175,7 +175,7 @@ pageContext.setAttribute("basePath",basePath);
 	        					$("#column-tbody").append(line);
 	        				}
 	        				
-	        				$("#partition-tbodybody").html("");
+	        				$("#partition-tbody").html("");
 							for(var i in res.partitions){
 								var line = "<tr><td>"+res.partitions[i].name+"</td><td>"+res.partitions[i].type+"</td><td>"+res.partitions[i].comment+"</td></tr>";
 								$("#partition-tbody").append(line);
