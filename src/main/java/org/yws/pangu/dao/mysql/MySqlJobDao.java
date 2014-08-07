@@ -34,7 +34,7 @@ public class MySqlJobDao {
 
 		return criteria.list();
 	}
-	
+
 	public JobBean getJob(Integer id) {
 		Session session = sessionFacotry.getCurrentSession();
 
@@ -52,6 +52,12 @@ public class MySqlJobDao {
 		session.save(job);
 		session.flush();
 		return job.getId();
+	}
+
+	public void delete(JobBean job) {
+		Session session = sessionFacotry.getCurrentSession();
+		session.delete(job);
+		session.flush();
 	}
 
 }

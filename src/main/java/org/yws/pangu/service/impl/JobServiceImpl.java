@@ -12,8 +12,6 @@ import org.yws.pangu.dao.mysql.MySqlJobHistoryDao;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
-import org.yws.pangu.job.ManualHiveJob;
-import org.yws.pangu.job.ManualShellJob;
 import org.yws.pangu.service.JobManager;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
@@ -161,5 +159,15 @@ public class JobServiceImpl {
 
 	public List<JobBean> getAllAutoRunJobs() {
 		return jobDao.getAutoRunJobs();
+	}
+
+	public int deletejob(Integer id, String owner) {
+		try {
+			jobManager.removeJob(id);
+			jobDao.delete(getJob(id));
+		} catch (SchedulerException e) {
+			return 0;
+		}
+		return 1;
 	}
 }

@@ -4,14 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.quartz.Calendar;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.Scheduler;
-import org.quartz.Trigger;
-import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +12,6 @@ import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.domain.ResponseBean;
-import org.yws.pangu.job.HiveJob;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateUtils;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
@@ -101,6 +92,19 @@ public class JobController {
 			return new ResponseBean(false, "该目录还有job存在,不能删除");
 		} else {
 			return new ResponseBean(false, "删除时候发生异常");
+		}
+	}
+	
+	@RequestMapping(value = "deletejob.do")
+	public @ResponseBody ResponseBean deletejob(Integer id) {
+		// TODO:
+		String owner = "1";
+
+		int res = jobService.deletejob(id, owner);
+		if (1 == res) {
+			return new ResponseBean(true);
+		} else {
+			return new ResponseBean(false, "删除失败");
 		}
 	}
 

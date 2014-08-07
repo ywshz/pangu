@@ -199,7 +199,19 @@ function initToolBar() {
     	});
     });
     $("#delete-btn").click(function () {
-
+    	 $.post(BASE_PATH+"/jobs/deletejob.do", { id: $("#viewing-job-input").val() },function(res){
+    		 var treeObj = $.fn.zTree.getZTreeObj("tree");
+    		 var nodes = treeObj.getSelectedNodes();
+    		 for (var i=0, l=nodes.length; i < l; i++) {
+    		 	treeObj.removeNode(nodes[i]);
+    		 }
+    		 if(res.success){
+    			$("#right-content-div").hide();
+    			alert("删除成功"); 
+    		 }else{
+    			 alsert(res.message);
+    		 }
+    	 });
     });
     $("#update-job-btn").click(function () {
         $.post(BASE_PATH+"/jobs/update.do", {
