@@ -216,12 +216,18 @@ public class JobController {
 	public @ResponseBody LogStatusWebBean gethistorylog(Long historyId) {
 		LogStatusWebBean wb;
 
+		Long neg = new Long(historyId*-1L);
 		if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId) != null) {
 			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId).toString();
 			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(historyId);
 
 			wb = new LogStatusWebBean(status, log);
-		} else {
+		} else if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(neg) != null) {
+			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(neg).toString();
+			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(neg);
+
+			wb = new LogStatusWebBean(status, log);
+		}else {
 
 			JobHistory history = jobService.getHistory(historyId);
 			wb = new LogStatusWebBean(history.getStatus(), history.getLog());

@@ -39,7 +39,7 @@ pageContext.setAttribute("basePath",basePath);
 	<div class="container">
 
 		<div class="starter-template">
-			<h1>盘古：开天辟地</h1>
+			<h1>盘古：Shell/Hive任务调度系统</h1>
 		</div>
 
 	</div>

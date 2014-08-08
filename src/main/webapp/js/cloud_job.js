@@ -129,6 +129,9 @@ function initToolBar() {
         setTimeout(function(){
         	editor.refresh();
         },200);
+        
+        var dt = $.fn.zTree.getZTreeObj("dependencyTree");
+        dt.reAsyncChildNodes(null , "refresh", true);
     });
     
     $.fn.zTree.init($("#dependencyTree"), {
@@ -233,6 +236,7 @@ function initToolBar() {
                             nodes = zTree.getSelectedNodes();
                     nodes[0].name = $("#inputName").val() + "[" + $("#viewing-job-input").val() + "]";
                     zTree.updateNode(nodes[0]);
+                    
                     $('#editModal').modal('hide');
                     freshJobView($("#viewing-job-input").val());
                     alert("修改成功!");
@@ -351,6 +355,10 @@ function refreshNode(type, silent) {
         zTree.reAsyncChildNodes(nodes[i], type, silent);
         if (!silent) zTree.selectNode(nodes[i]);
     }
+    
+    //编辑页面的依赖树
+//   var dt = $.fn.zTree.getZTreeObj("dependencyTree");
+//   dt.reAsyncChildNodes(null , "refresh", true);
 }
 
 function deleteJob(){
