@@ -9,6 +9,7 @@
 <%@page import="static org.quartz.impl.matchers.GroupMatcher.*"%>  
 <%@page import="java.util.Set"%>  
 <%@page import="org.quartz.JobKey"%>  
+<%@page import="org.yws.pangu.utils.JobExecutionMemoryHelper"%>  
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
 <html xmlns="http://www.w3.org/1999/xhtml">  
@@ -27,11 +28,17 @@ Scheduler scheduler = schedulerFactory.getScheduler();
 
 Set<JobKey> keys = scheduler.getJobKeys(anyJobGroup());
 
-out.print("Schedule Jobs: <br/>");
+out.println("Schedule Jobs: <br/>");
 for(JobKey key : keys ){
 	out.print("Group Name: "+ key.getGroup()+", Job ID:"+key.getName());
 	out.print("<br/>");
 }
+out.println("Running Jobs History ID: <br/>");
+for(Long key : JobExecutionMemoryHelper.jobLogMemoryHelper.keySet() ){
+	out.print("Job ID: "+ key);
+	out.print("<br/>");
+}
+
 %>  
 </body>  
 </html>  

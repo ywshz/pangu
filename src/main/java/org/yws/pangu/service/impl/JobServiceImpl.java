@@ -13,6 +13,7 @@ import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.service.JobManager;
+import org.yws.pangu.utils.DateUtils;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
 @Service
@@ -169,5 +170,19 @@ public class JobServiceImpl {
 			return 0;
 		}
 		return 1;
+	}
+	
+	public int[] getSuccessFailedJobsByDate(int ndayago){
+		List<JobHistory> l = jobHistoryDao.list(DateUtils.getNDaysBeginTime(ndayago),DateUtils.getNDaysBeginTime(ndayago+1));
+		int success=0;
+		int failed=0;
+		for(JobHistory his : l){
+			if("SUCCESS".equals(his.getStatus())){
+				success++;
+			}else if("FAILED".equals(his.getStatus())){
+				failed++;
+			}
+		}
+		return new int[]{success,failed};
 	}
 }

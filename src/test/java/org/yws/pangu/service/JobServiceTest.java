@@ -37,4 +37,11 @@ public class JobServiceTest {
 			System.out.println(g.getStartTime());
 		}
 	}
+	
+	@Test
+	public void hisList1(){
+		int[] rs=jobService.getSuccessFailedJobsByDate(-3);
+		System.out.println(rs[0]);
+		System.out.println(rs[1]);
+	}
 }

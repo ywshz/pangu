@@ -11,6 +11,8 @@ if(uri.contains("hdfs_browse.jsp")){
 	pageContext.setAttribute("page","cloud_test");     
 }else if(uri.contains("cloud_job.jsp")){
 	pageContext.setAttribute("page","cloud_job");   
+}else if(uri.contains("today_repoter.jsp")){
+	pageContext.setAttribute("page","today_repoter");   
 }
 %>
 
@@ -38,8 +40,8 @@ if(uri.contains("hdfs_browse.jsp")){
 					href="${path }/cloud_test.jsp">云测试</a></li>
 				<li class="${page=='cloud_job'?'active':'' }"><a
 					href="${path }/cloud_job.jsp">云调度</a></li>
-				<li class="${page=='topics'?'active':'' }"><a
-					href="${path }/developing.html">云统计</a></li>
+				<li class="${page=='today_repoter'?'active':'' }"><a
+					href="${path }/today_repoter.jsp">云统计</a></li>
 			</ul>
 		</div>
 		<!--/.nav-collapse -->

@@ -1,5 +1,6 @@
 package org.yws.pangu.dao.mysql;
 
+import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Criteria;
@@ -40,6 +41,14 @@ public class MySqlJobHistoryDao {
 	public JobHistory get(Long historyId) {
 		Session session = sessionFacotry.getCurrentSession();
 		return (JobHistory) session.get(JobHistory.class, historyId);
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<JobHistory> list(Date start, Date end) {
+		Session session = sessionFacotry.getCurrentSession();
+		Criteria criteria = session.createCriteria(JobHistory.class);
+		criteria.add(Restrictions.and(Restrictions.ge("startTime", start),Restrictions.lt("startTime", end)));
+		return criteria.list();
 	}
 
 }
