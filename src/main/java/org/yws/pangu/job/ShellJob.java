@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.enums.EJobTriggerType;
 import org.yws.pangu.schedule.RunShellJob;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
@@ -53,7 +54,7 @@ public class ShellJob implements Job {
 			return;
 		}
 
-		JobHistory history = jobService.createJobHistory(jobId, JobHistory.AUTO_TRIGGER);
+		JobHistory history = jobService.createJobHistory(jobId,  EJobTriggerType.AUTO_TRIGGER.getValue());
 
 		final Long HISTORY_ID = history.getId();
 

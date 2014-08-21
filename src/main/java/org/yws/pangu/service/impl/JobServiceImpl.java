@@ -12,6 +12,8 @@ import org.yws.pangu.dao.mysql.MySqlJobHistoryDao;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.enums.EJobRunType;
+import org.yws.pangu.enums.EJobTriggerType;
 import org.yws.pangu.service.JobManager;
 import org.yws.pangu.utils.DateUtils;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
@@ -59,7 +61,7 @@ public class JobServiceImpl {
 		history.setOperator(job.getOwner());
 		history.setStartTime(new Date());
 		history.setStatus(JobExecutionMemoryHelper.RUNNING);
-		history.setTriggerType(JobHistory.AUTO_TRIGGER);
+		history.setTriggerType(EJobTriggerType.AUTO_TRIGGER.getValue());
 		jobHistoryDao.save(history);
 
 		job.setHistoryId(history.getId());
@@ -115,12 +117,12 @@ public class JobServiceImpl {
 		JobBean job = getJob(id);
 
 		try {
-			if (JobBean.AUTO.equals(job.getAuto())) {
-				job.setAuto(JobBean.MANUAL);
+			if (EJobRunType.AUTO.ordinal() == job.getAuto().intValue()) {
+				job.setAuto(EJobRunType.MANUAL.ordinal());
 				rs = "closed";
 				jobManager.removeJob(job);
 			} else {
-				job.setAuto(JobBean.AUTO);
+				job.setAuto(EJobRunType.AUTO.ordinal());
 				rs = "opened";
 				jobManager.scheduleJob(job);
 			}
@@ -171,18 +173,19 @@ public class JobServiceImpl {
 		}
 		return 1;
 	}
-	
-	public int[] getSuccessFailedJobsByDate(int ndayago){
-		List<JobHistory> l = jobHistoryDao.list(DateUtils.getNDaysBeginTime(ndayago),DateUtils.getNDaysBeginTime(ndayago+1));
-		int success=0;
-		int failed=0;
-		for(JobHistory his : l){
-			if("SUCCESS".equals(his.getStatus())){
+
+	public int[] getSuccessFailedJobsByDate(int ndayago) {
+		List<JobHistory> l = jobHistoryDao.list(DateUtils.getNDaysBeginTime(ndayago),
+				DateUtils.getNDaysBeginTime(ndayago + 1));
+		int success = 0;
+		int failed = 0;
+		for (JobHistory his : l) {
+			if ("SUCCESS".equals(his.getStatus())) {
 				success++;
-			}else if("FAILED".equals(his.getStatus())){
+			} else if ("FAILED".equals(his.getStatus())) {
 				failed++;
 			}
 		}
-		return new int[]{success,failed};
+		return new int[] { success, failed };
 	}
 }

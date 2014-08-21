@@ -11,6 +11,7 @@ import java.util.Map;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.enums.EJobTriggerType;
 import org.yws.pangu.service.impl.JobServiceImpl;
 
 public class TestHiveJob implements org.quartz.Job {
@@ -28,7 +29,7 @@ public class TestHiveJob implements org.quartz.Job {
 		Integer jobId = Integer.valueOf(context.getJobDetail().getKey().getName());
 		System.out.println("Job : " + context.getJobDetail().getKey().getName() + " Running.");
 
-		JobHistory history = jobService.createJobHistory(jobId, JobHistory.AUTO_TRIGGER);
+		JobHistory history = jobService.createJobHistory(jobId,  EJobTriggerType.AUTO_TRIGGER.getValue());
 
 		final Long HISTORY_ID = history.getId();
 

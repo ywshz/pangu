@@ -2,7 +2,7 @@ package org.yws.pangu.web.webbean;
 
 import java.io.Serializable;
 
-import org.yws.pangu.domain.FileBean;
+import org.yws.pangu.enums.EFileType;
 
 public class FileWebBean implements Serializable {
 
@@ -19,7 +19,7 @@ public class FileWebBean implements Serializable {
 	public FileWebBean(Integer id, String name, Short type) {
 		this.id = id;
 		this.name = name;
-		this.isFolder = FileBean.FOLDER == type;
+		this.isFolder = EFileType.FOLDER.isEqual(type);
 	}
 
 	public Integer getId() {

@@ -1,6 +1,9 @@
 package org.yws.pangu.domain;
 
 import javax.persistence.*;
+
+import org.yws.pangu.enums.EFileType;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -63,7 +66,7 @@ public class FileDescriptor implements Serializable {
     }
 
     public boolean isFolder() {
-        return this.type == FileBean.FOLDER;
+        return EFileType.FOLDER.isEqual(this.type);
     }
 
     public void setFolder(boolean folder) {

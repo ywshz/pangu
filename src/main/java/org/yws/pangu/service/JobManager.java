@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.domain.JobBean;
+import org.yws.pangu.enums.EJobScheduleType;
+import org.yws.pangu.enums.EJobType;
 import org.yws.pangu.job.HiveJob;
 import org.yws.pangu.job.ManualHiveJob;
 import org.yws.pangu.job.ManualShellJob;
@@ -98,14 +100,14 @@ public class JobManager {
 	}
 
 	public void scheduleJob(JobBean jobBean) throws SchedulerException {
-		if (JobBean.RUN_BY_TIME.equals(jobBean.getScheduleType())) {
+		if (EJobScheduleType.RUN_BY_TIME.isEqual(jobBean.getScheduleType())) {
 
 			JobDetail job = null;
-			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
+			if (EJobType.HIVE.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(HiveJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 
-			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
+			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 			}
@@ -117,7 +119,7 @@ public class JobManager {
 
 			scheduler.scheduleJob(job, trigger);
 
-		} else if (JobBean.RUN_BY_DEPENDENCY.equals(jobBean.getScheduleType())) {
+		} else if (EJobScheduleType.RUN_BY_DEPENDENCY.isEqual(jobBean.getScheduleType())) {
 			Set<String> set = new HashSet<String>();
 			for (String id : jobBean.getDependencies().split(",")) {
 				set.add(id);
@@ -141,11 +143,11 @@ public class JobManager {
 			scheduler.triggerJob(new JobKey(jobId.toString()));
 		} else {
 			JobDetail job = null;
-			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
+			if (EJobType.HIVE.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(HiveJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 
-			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
+			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
 			}
@@ -167,10 +169,10 @@ public class JobManager {
 			scheduler.triggerJob(new JobKey(jobKeyId));
 		} else {
 			JobDetail job = null;
-			if (JobBean.HIVE_JOB.equals(jobBean.getRunType())) {
+			if (EJobType.HIVE.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ManualHiveJob.class).withIdentity(jobKeyId).build();
 
-			} else if (JobBean.SHELL_JOB.equals(jobBean.getRunType())) {
+			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ManualShellJob.class).withIdentity(jobKeyId).build();
 			}
 

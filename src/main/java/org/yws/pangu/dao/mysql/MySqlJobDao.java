@@ -9,6 +9,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.yws.pangu.domain.JobBean;
+import org.yws.pangu.enums.EJobRunType;
 
 @Repository
 public class MySqlJobDao {
@@ -30,7 +31,7 @@ public class MySqlJobDao {
 		Session session = sessionFacotry.getCurrentSession();
 
 		Criteria criteria = session.createCriteria(JobBean.class);
-		criteria.add(Restrictions.eq("auto", JobBean.AUTO));
+		criteria.add(Restrictions.eq("auto", EJobRunType.AUTO.ordinal()));
 
 		return criteria.list();
 	}

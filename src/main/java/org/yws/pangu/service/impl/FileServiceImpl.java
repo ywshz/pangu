@@ -8,6 +8,7 @@ import org.yws.pangu.domain.DebugHistory;
 import org.yws.pangu.domain.FileBean;
 import org.yws.pangu.domain.FileDescriptor;
 import org.yws.pangu.domain.OutputRedirector;
+import org.yws.pangu.enums.EFileType;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.MemoryDebugHelper;
 
@@ -49,7 +50,7 @@ public class FileServiceImpl {
 			return null;
 		}
 
-		if (fd.getType() == FileBean.FOLDER) {
+		if (EFileType.FOLDER.isEqual(fd.getType())) {
 			return fileDao.fillFile(fd);
 		} else {
 			return new FileBean(fd);

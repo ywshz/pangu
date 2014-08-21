@@ -13,8 +13,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "pangu_job_history")
 public class JobHistory implements Serializable {
-	public static final Integer AUTO_TRIGGER = new Integer(1);
-	public static final Integer MANUAL_TRIGGER = new Integer(2);
 	
 	private static final long serialVersionUID = 1L;
 	@Id

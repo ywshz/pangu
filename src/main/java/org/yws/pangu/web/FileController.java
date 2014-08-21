@@ -14,6 +14,7 @@ import org.yws.pangu.domain.DebugHistory;
 import org.yws.pangu.domain.FileBean;
 import org.yws.pangu.domain.FileDescriptor;
 import org.yws.pangu.domain.ResponseBean;
+import org.yws.pangu.enums.EFileType;
 import org.yws.pangu.service.impl.FileServiceImpl;
 import org.yws.pangu.utils.MemoryDebugHelper;
 import org.yws.pangu.web.webbean.DebugHistoryListItemWebBean;
@@ -102,7 +103,7 @@ public class FileController {
 
 		FileDescriptor fd = new FileDescriptor();
 		fd.setName(name);
-		fd.setType((short) (isParent ? FileBean.FOLDER : FileBean.FILE));
+		fd.setType((isParent ? EFileType.FOLDER.getValue() : EFileType.FILE.getValue()));
 		fd.setOwner(owner);
 		fd.setParent(parentId);
 		Integer id = fileService.save(fd);

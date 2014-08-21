@@ -4,9 +4,6 @@ import java.util.List;
 
 public class FileBean {
 
-	public static int FOLDER = 1;
-	public static int FILE = 2;
-
 	private List<FileDescriptor> subFiles;
 	private FileDescriptor fileDescriptor;
 

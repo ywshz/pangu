@@ -12,6 +12,9 @@ import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobGroup;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.domain.ResponseBean;
+import org.yws.pangu.enums.EJobRunType;
+import org.yws.pangu.enums.EJobScheduleType;
+import org.yws.pangu.enums.EJobType;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateUtils;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
@@ -35,14 +38,14 @@ public class JobController {
 		String owner = "1";
 
 		JobBean job = new JobBean();
-		job.setAuto(JobBean.MANUAL);
+		job.setAuto(EJobRunType.MANUAL.ordinal());
 		job.setGmtCreate(new Date());
 		job.setGmtModified(new Date());
 		job.setGroupId(groupId);
 		job.setName("New Job");
 		job.setOwner(owner);
-		job.setRunType(JobBean.HIVE_JOB);
-		job.setScheduleType(JobBean.RUN_BY_TIME);
+		job.setRunType(EJobType.HIVE.getType());
+		job.setScheduleType(EJobScheduleType.RUN_BY_TIME.getValue());
 		job.setCron("0 0 0 * * ?");
 		Integer id = jobService.save(job);
 
@@ -81,10 +84,10 @@ public class JobController {
 		String owner = "1";
 
 		JobGroup root = jobService.getRootGroup(owner);
-		if(root.getId().equals(id)){
+		if (root.getId().equals(id)) {
 			return new ResponseBean(false, "该目录不允许删除");
 		}
-		
+
 		int res = jobService.deleteGroup(id, owner);
 		if (1 == res) {
 			return new ResponseBean(true);
@@ -94,7 +97,7 @@ public class JobController {
 			return new ResponseBean(false, "删除时候发生异常");
 		}
 	}
-	
+
 	@RequestMapping(value = "deletejob.do")
 	public @ResponseBody ResponseBean deletejob(Integer id) {
 		// TODO:
@@ -172,7 +175,7 @@ public class JobController {
 		job.setGmtModified(new Date());
 		job.setRunType(uJob.getRunType());
 		job.setScheduleType(uJob.getScheduleType());
-		if (JobBean.RUN_BY_TIME.equals(job.getScheduleType())) {
+		if (EJobScheduleType.RUN_BY_TIME.isEqual(job.getScheduleType())) {
 			job.setCron(uJob.getCron());
 		} else {
 			job.setDependencies(uJob.getDependencies());
@@ -216,7 +219,7 @@ public class JobController {
 	public @ResponseBody LogStatusWebBean gethistorylog(Long historyId) {
 		LogStatusWebBean wb;
 
-		Long neg = new Long(historyId*-1L);
+		Long neg = new Long(historyId * -1L);
 		if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId) != null) {
 			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId).toString();
 			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(historyId);
@@ -227,7 +230,7 @@ public class JobController {
 			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(neg);
 
 			wb = new LogStatusWebBean(status, log);
-		}else {
+		} else {
 
 			JobHistory history = jobService.getHistory(historyId);
 			wb = new LogStatusWebBean(history.getStatus(), history.getLog());

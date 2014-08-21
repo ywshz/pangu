@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.yws.pangu.domain.FileBean;
+import org.yws.pangu.enums.EFileType;
 
 public class FileTreeWebBean implements Serializable {
 
@@ -21,7 +22,7 @@ public class FileTreeWebBean implements Serializable {
 		this.id = id;
 		this.name = name;
 		this.children = children;
-		this.isFolder = FileBean.FOLDER == type;
+		this.isFolder = EFileType.FOLDER.isEqual(type);
 	}
 
 	public String getId() {
