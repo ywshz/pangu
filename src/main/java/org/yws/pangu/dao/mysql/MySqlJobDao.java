@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -25,6 +26,15 @@ public class MySqlJobDao {
 
 		return criteria.list();
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<JobBean> listAll() {
+		Session session = sessionFacotry.getCurrentSession();
+		Criteria criteria = session.createCriteria(JobBean.class);
+		criteria.addOrder(Order.desc("gmtCreate"));
+		return criteria.list();
+	}
+
 
 	@SuppressWarnings("unchecked")
 	public List<JobBean> getAutoRunJobs() {

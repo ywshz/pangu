@@ -1,7 +1,10 @@
 package org.yws.pangu.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,10 @@ public class JobServiceImpl {
 
 	public List<JobBean> jobList(Integer groupId) {
 		return jobDao.list(groupId);
+	}
+	
+	public List<JobBean> listAllJob() {
+		return jobDao.listAll();
 	}
 
 	public List<JobGroup> groupList(Integer parentId) {
@@ -187,5 +194,47 @@ public class JobServiceImpl {
 			}
 		}
 		return new int[] { success, failed };
+	}
+
+	/**
+	 * 
+	 * @param days
+	 *            > 0
+	 * @return
+	 */
+	public Map<String, int[]> getSuccessFailedJobsInNDays(int days) {
+		List<JobHistory> l = jobHistoryDao.list(DateUtils.getNDaysBeginTime(days * -1),
+				DateUtils.getNDaysBeginTime(1));
+
+		Map<String, int[]> map = new HashMap<String, int[]>();
+
+		for (JobHistory his : l) {
+			String d = DateUtils.format(his.getStartTime().getTime(), "yyyy/MM/dd");
+			if (map.get(d) == null) {
+				map.put(d, new int[] { 0, 0 });
+			}
+			if ("SUCCESS".equals(his.getStatus())) {
+				map.get(d)[0]++;
+			} else if ("FAILED".equals(his.getStatus())) {
+				map.get(d)[1]++;
+			}
+		}
+
+		return map;
+	}
+
+	public List<String> jobCostTimeInNDays(Integer jobId, int days) {
+		List<String> list = new ArrayList<String>();
+		List<JobHistory> l = jobHistoryDao.listByJobId(jobId,
+				DateUtils.getNDaysBeginTime(days * -1), DateUtils.getNDaysBeginTime(1));
+
+		for (JobHistory his : l) {
+			if (his.getEndTime() == null) {
+				continue;
+			}
+			list.add(String.valueOf( (his.getEndTime().getTime() - his.getStartTime().getTime())/1000));
+		}
+
+		return list;
 	}
 }

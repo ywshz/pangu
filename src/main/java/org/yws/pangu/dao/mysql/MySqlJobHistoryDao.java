@@ -11,6 +11,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.yws.pangu.domain.JobHistory;
+import org.yws.pangu.enums.ETimeOrderType;
 
 @Repository
 public class MySqlJobHistoryDao {
@@ -47,7 +48,33 @@ public class MySqlJobHistoryDao {
 	public List<JobHistory> list(Date start, Date end) {
 		Session session = sessionFacotry.getCurrentSession();
 		Criteria criteria = session.createCriteria(JobHistory.class);
-		criteria.add(Restrictions.and(Restrictions.ge("startTime", start),Restrictions.lt("startTime", end)));
+		criteria.add(Restrictions.and(Restrictions.ge("startTime", start),
+				Restrictions.lt("startTime", end)));
+		return criteria.list();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<JobHistory> list(Date start, Date end, ETimeOrderType timeOrderType) {
+		Session session = sessionFacotry.getCurrentSession();
+		Criteria criteria = session.createCriteria(JobHistory.class);
+		criteria.add(Restrictions.and(Restrictions.ge("startTime", start),
+				Restrictions.lt("startTime", end)));
+		if (timeOrderType == ETimeOrderType.ASC) {
+			criteria.addOrder(Order.asc("startTime"));
+		} else {
+			criteria.addOrder(Order.desc("startTime"));
+		}
+		return criteria.list();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<JobHistory> listByJobId(Integer jobId, Date start, Date end) {
+		Session session = sessionFacotry.getCurrentSession();
+		Criteria criteria = session.createCriteria(JobHistory.class);
+		criteria.add(Restrictions.eq("jobId", jobId));
+		criteria.add(Restrictions.and(Restrictions.ge("startTime", start),
+				Restrictions.lt("startTime", end)));
+		criteria.addOrder(Order.asc("startTime"));
 		return criteria.list();
 	}
 
