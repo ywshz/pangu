@@ -1,19 +1,17 @@
 package org.yws.pangu.service;
 
-import java.util.Date;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.yws.pangu.domain.FileDescriptor;
-import org.yws.pangu.enums.EFileType;
 import org.yws.pangu.service.impl.FileServiceImpl;
+import org.yws.pangu.utils.DateRender;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "classpath:spring-context.xml")
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@ContextConfiguration(locations = "classpath:spring-context.xml")
 public class FileServiceTest {
 
 	@Autowired
@@ -25,6 +23,19 @@ public class FileServiceTest {
 	}
 
     @Test
-    public void testHistory(){
+    public void testHistory() throws IOException {
+
+        String json="";
+        FileReader reader = new FileReader("f:/123.txt");
+        BufferedReader br = new BufferedReader(reader);
+        String s1 = null;
+        while ((s1 = br.readLine()) != null) {
+                json+=s1;
+        }
+        br.close();
+        reader.close();
+
+        System.out.println(DateRender.render(json));
+
     }
 }
