@@ -1,17 +1,5 @@
 package org.yws.pangu.job;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Date;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -24,6 +12,12 @@ import org.yws.pangu.schedule.RunHiveJob;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
+
+import java.io.*;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HiveJob implements Job {
 	private static Logger logger = LoggerFactory.getLogger(RunHiveJob.class);
@@ -61,8 +55,9 @@ public class HiveJob implements Job {
 
 		// //////////////
 		File file = null;
+        String script = null;
 		try {
-			String script = jobBean.getScript();
+			script = jobBean.getScript();
 			script = DateRender.render(script);
 			file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
 			file.createNewFile();
@@ -83,6 +78,10 @@ public class HiveJob implements Job {
 
 		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
 				"Job start...\n"));
+
+        JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
+                "Job script:\n"+script+"\n"));
+
 		JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 				JobExecutionMemoryHelper.RUNNING);
 
