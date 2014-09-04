@@ -17,7 +17,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>盘古 -- 云测试</title>
+    <title>盘古 -- 云调度</title>
 
     <link href="${path }/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="${path }/css/cloud_test.css" rel="stylesheet">
@@ -89,6 +89,10 @@
 
                                 <button type="button" class="btn btn-default" id="delete-btn">
                                     <span class=" "></span>删除
+                                </button>
+                                
+                                 <button type="button" class="btn btn-default" id="upload-resource-btn">
+                                    <span class=" "></span>上传资源
                                 </button>
                             </div>
                         </div>
@@ -258,6 +262,36 @@
         </div>
     </div>
 </div>
+
+
+
+<div class="modal fade in" id="uploadModal" tabindex="-1" role="dialog"
+     aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="editModalLabel">资源上传</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form">
+					  <div class="form-group">
+					    <label for="exampleInputFile">资源文件</label>
+					    <input type="file" id="exampleInputFile">
+					    <p class="help-block">请上传zip格式文件,上传后会自动解压.</p>
+					  </div>
+					  <button type="button" class="btn btn-primary">上传</button>
+				</form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- /.container -->

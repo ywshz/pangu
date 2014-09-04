@@ -14,6 +14,8 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.yws.pangu.domain.RegisterInfo;
@@ -56,5 +58,13 @@ public class RegisterServer {
 	public void stop() {
 		bossGroup.shutdownGracefully();
 		workerGroup.shutdownGracefully();
+	}
+
+	public List<TaskNode> getAllWokers() {
+		List<TaskNode> tdl = new ArrayList<TaskNode>();
+		for (TaskNode node : this.taskNodes.values()) {
+			tdl.add(node);
+		}
+		return tdl;
 	}
 }

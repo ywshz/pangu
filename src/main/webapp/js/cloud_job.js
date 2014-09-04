@@ -222,6 +222,14 @@ function initToolBar() {
     		 }
     	 });
     });
+    
+    $("#upload-resource-btn").click(function(){
+    	 $('#uploadModal').modal({
+             backdrop: 'static',
+             keyboard: false
+         });
+    });
+    
     $("#update-job-btn").click(function () {
         $.post(BASE_PATH+"/jobs/update.do", {
                     id: $("#viewing-job-input").val(),

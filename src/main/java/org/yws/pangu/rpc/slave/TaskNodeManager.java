@@ -24,21 +24,21 @@ public class TaskNodeManager {
 			final String localAddress = address.getHostAddress();
 			final String localName = address.getHostName();
 			registerClient.register(localAddress, localName);
-			heardBeatThread = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					while(true){
-						try {
-							Thread.sleep(1000);
-							registerClient.heartBeat(localAddress, localName);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			});
-			heardBeatThread.start();
+//			heardBeatThread = new Thread(new Runnable() {
+//
+//				@Override
+//				public void run() {
+//					while(true){
+//						try {
+//							Thread.sleep(1000);
+//							registerClient.heartBeat(localAddress, localName);
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
+//					}
+//				}
+//			});
+//			heardBeatThread.start();
 			
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
