@@ -1,5 +1,5 @@
 $(document).ready(init);
-var editor,scriptView;
+var editor,scriptView,refreshJobLogTimer;
 function init() {
     initLeftTree();
     initToolBar();
@@ -89,6 +89,12 @@ function refreshHistoryView(jobId) {
 }
 
 function viewLog(historyId){
+	if(refreshJobLogTimer!=undefined){
+		clearTimeout(refreshJobLogTimer);
+		$("#log-his-p").html("");
+		document.getElementById('log-div').scrollTop = 0;
+	}
+	
     $.post(BASE_PATH+"/jobs/gethistorylog.do",{historyId:historyId},function(res){
     	$("#log-his-p").html("");
     	$("#logModal").modal("show");
@@ -99,7 +105,7 @@ function viewLog(historyId){
             $("#log-his-p").html(nr);
             document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
     	}else{
-    		 var timeId = setInterval(function () {
+    		 refreshJobLogTimer = setInterval(function () {
     	            $.post(BASE_PATH+"/jobs/gethistorylog.do", {historyId:historyId}, function (res) {
     	                var cr = $("#log-his-p").html();
     	                var nr = res.log.replace(/\n/g, "<br>");
@@ -108,7 +114,7 @@ function viewLog(historyId){
     	                    document.getElementById('log-div').scrollTop = document.getElementById('log-div').scrollHeight;
     	                }
     	                if (res.status == "SUCCESS" || res.status == "FAILED") {
-    	                    clearTimeout(timeId);
+    	                    clearTimeout(refreshJobLogTimer);
     	                    refreshHistoryView($("#viewing-job-input").val());
     	                }
     	            });
