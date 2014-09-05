@@ -22,4 +22,7 @@ public interface HdfsService {
 
 	public boolean rename(String src, String dest) throws IOException;
 
+	public void upload(String path, byte[] data) throws IOException;
+	
+	public boolean isExist(String path);
 }

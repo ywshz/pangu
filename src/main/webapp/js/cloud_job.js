@@ -140,6 +140,31 @@ function initToolBar() {
         dt.reAsyncChildNodes(null , "refresh", true);
     });
     
+    $("#file-upiload-input").uploadify({  
+        'buttonText' : '请选择文件',  
+        'multi'    : false,
+        'uploadLimit' : 1,
+        'fileSizeLimit' : '100MB',
+        'fileTypeDesc' : 'ZIP文件',
+        'fileTypeExts' : '*.zip',
+        'height' : 30,  
+        'swf' : BASE_PATH+'/uploadify/uploadify.swf',  
+        'uploader' : BASE_PATH+'/upload/uploadFile.do',  
+        'width' : 80,  
+        'auto':false,  
+        'fileObjName'   : 'file',  
+        'onUploadStart' : function(file) {
+            $("#file-upiload-input").uploadify("settings", "jobId", $("#viewing-job-input").val());
+        },
+        'onUploadSuccess' : function(file, data, response) {  
+            alert( file.name + ' 上传成功！ ');  
+        }  
+    });
+    
+    $("#do-upload-btn").click(function(){
+    	
+    });
+    
     $.fn.zTree.init($("#dependencyTree"), {
     	check: {
     		enable: true,
@@ -228,6 +253,10 @@ function initToolBar() {
              backdrop: 'static',
              keyboard: false
          });
+    	 
+    	 $.post(BASE_PATH+"/upload/exist.do",{jobId:$("#viewing-job-input").val()},function(res){
+    		 $("#uploaded-rs-label").html(res);
+    	 })
     });
     
     $("#update-job-btn").click(function () {

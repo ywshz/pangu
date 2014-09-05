@@ -23,6 +23,7 @@
     <link href="${path }/css/cloud_test.css" rel="stylesheet">
     <link href="${path }/css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
 	<link href="${path }/codemirror/lib/codemirror.css" rel="stylesheet" >
+	<link href="${path }/uploadify/uploadify.css" rel="stylesheet" >
     <style type="text/css">
         div#rMenu {
             position: fixed;
@@ -87,13 +88,14 @@
                                     <span class=" "></span>开启/关闭
                                 </button>
 
+                                 <button type="button" class="btn btn-default" id="upload-resource-btn">
+                                    <span class=" "></span>资源管理
+                                </button>
+
                                 <button type="button" class="btn btn-default" id="delete-btn">
                                     <span class=" "></span>删除
                                 </button>
                                 
-                                 <button type="button" class="btn btn-default" id="upload-resource-btn">
-                                    <span class=" "></span>上传资源
-                                </button>
                             </div>
                         </div>
 
@@ -279,11 +281,15 @@
                 <form role="form">
 					  <div class="form-group">
 					    <label for="exampleInputFile">资源文件</label>
-					    <input type="file" id="exampleInputFile">
-					    <p class="help-block">请上传zip格式文件,上传后会自动解压.</p>
+					    <input type="file" id="file-upiload-input">
+					    <p class="help-block">请上传zip格式文件,上传后会自动解压,每次上传都会删除老资源,文件最大为100M.</p>
 					  </div>
-					  <button type="button" class="btn btn-primary">上传</button>
+					  <button type="button" class="btn btn-primary" id="do-upload-btn">上传</button>
 				</form>
+				
+				<div>
+					已上传资源:<label id="uploaded-rs-label"></label>
+				</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
@@ -311,8 +317,8 @@
 <script type="text/javascript" src="${path }/js/jquery.ztree.exedit-3.5.js"></script>
 <script type="text/javascript" src="${path }/codemirror/lib/codemirror.js"></script>
 <script type="text/javascript" src="${path }/codemirror/mode/sql/sql.js"></script>
+<script type="text/javascript" src="${path }/uploadify/jquery.uploadify.min.js"></script>
 <script type="text/javascript" src="${path }/js/cloud_job.js"></script>
-
 
 </body>
 </html>

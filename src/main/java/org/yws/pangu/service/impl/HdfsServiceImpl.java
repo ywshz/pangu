@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -59,11 +60,11 @@ public class HdfsServiceImpl implements HdfsService {
 		return new String(bts);
 	}
 
-//	@Override
-//	public boolean delete(String path) throws IOException {
-////		return hdfs.delete(new Path(path), true);
-//		return hdfs.rename(new Path(path), new Path("/Trash"+path)); 
-//	}
+	// @Override
+	// public boolean delete(String path) throws IOException {
+	// // return hdfs.delete(new Path(path), true);
+	// return hdfs.rename(new Path(path), new Path("/Trash"+path));
+	// }
 
 	@Override
 	public boolean rename(String src, String dst) throws IOException {
@@ -91,12 +92,34 @@ public class HdfsServiceImpl implements HdfsService {
 		fis.read(data);
 
 		String d = new String(data);
-		d=d.replaceAll("<", "&lt;");
-		d=d.replaceAll(">", "&gt;");
-		d=d.replaceAll("$", "&amp");
+		d = d.replaceAll("<", "&lt;");
+		d = d.replaceAll(">", "&gt;");
+		d = d.replaceAll("$", "&amp");
 		hf.setContent(d);
 
 		return hf;
 	}
-	
+
+	@Override
+	public void upload(String path, byte[] data) throws IOException {
+		Path p = new Path(path);
+		if (hdfs.exists(p)) {
+			hdfs.delete(p, false);
+		}
+
+		FSDataOutputStream fo = hdfs.create(p);
+
+		fo.write(data);
+
+		fo.close();
+	}
+
+	@Override
+	public boolean isExist(String path) {
+		try {
+			return hdfs.exists(new Path(path));
+		} catch (IOException e) {
+			return false;
+		}
+	}
 }
