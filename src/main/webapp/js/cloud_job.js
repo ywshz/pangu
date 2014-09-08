@@ -143,7 +143,6 @@ function initToolBar() {
     $("#file-upiload-input").uploadify({  
         'buttonText' : '请选择文件',  
         'multi'    : false,
-        'uploadLimit' : 1,
         'fileSizeLimit' : '100MB',
         'fileTypeDesc' : 'ZIP文件',
         'fileTypeExts' : '*.zip',
@@ -152,17 +151,20 @@ function initToolBar() {
         'uploader' : BASE_PATH+'/upload/uploadFile.do',  
         'width' : 80,  
         'auto':false,  
-        'fileObjName'   : 'file',  
+        'fileObjName'   : 'file',
+        'formData' : {
+            'jobId' : ''
+        },
         'onUploadStart' : function(file) {
-            $("#file-upiload-input").uploadify("settings", "jobId", $("#viewing-job-input").val());
+            $("#file-upiload-input").uploadify("settings", "formData", {"jobId" : $("#viewing-job-input").val()});
         },
         'onUploadSuccess' : function(file, data, response) {  
-            alert( file.name + ' 上传成功！ ');  
-        }  
+            alert( file.name + ' 上传成功！ ');
+        }
     });
     
     $("#do-upload-btn").click(function(){
-    	
+        $("#file-upiload-input").uploadify('upload');
     });
     
     $.fn.zTree.init($("#dependencyTree"), {

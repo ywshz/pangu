@@ -1,6 +1,7 @@
 package org.yws.pangu.service.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.yws.pangu.domain.HdfsFile;
 import org.yws.pangu.service.HdfsService;
 import org.yws.pangu.utils.DateUtils;
@@ -113,6 +115,20 @@ public class HdfsServiceImpl implements HdfsService {
 
 		fo.close();
 	}
+
+    @Override
+    public void upload(String path, InputStream in) throws IOException {
+        Path p = new Path(path);
+        if (hdfs.exists(p)) {
+            hdfs.delete(p, false);
+        }
+
+        FSDataOutputStream fo = hdfs.create(p);
+
+        IOUtils.copyBytes(in,fo,8*1024,true);
+
+        fo.close();
+    }
 
 	@Override
 	public boolean isExist(String path) {

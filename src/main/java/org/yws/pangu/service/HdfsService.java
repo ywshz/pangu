@@ -1,6 +1,7 @@
 package org.yws.pangu.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import org.yws.pangu.domain.HdfsFile;
@@ -23,6 +24,8 @@ public interface HdfsService {
 	public boolean rename(String src, String dest) throws IOException;
 
 	public void upload(String path, byte[] data) throws IOException;
+
+    public void upload(String path, InputStream in) throws IOException;
 	
 	public boolean isExist(String path);
 }

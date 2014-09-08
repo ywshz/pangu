@@ -20,13 +20,13 @@ http://www.springframework.org/schema/task/spring-task-4.0.xsd">
 			<value>com.mysql.jdbc.Driver</value>
 		</property>
 		<property name="jdbcUrl">
-			<value>jdbc:mysql://master:3306/pangu</value>
+			<value>jdbc:mysql://localhost:3306/pangu</value>
 		</property>
 		<property name="user">
 			<value>root</value>
 		</property>
 		<property name="password">
-			<value>goodmysql123</value>
+			<value>123456</value>
 		</property>
 	</bean>
 	<bean id="sessionFactory"

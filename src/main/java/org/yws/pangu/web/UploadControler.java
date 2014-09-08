@@ -24,7 +24,7 @@ public class UploadControler {
 			@RequestParam(value = "file", required = false) MultipartFile file, Integer jobId)
 			throws IOException {
 		try {
-			hdfsService.upload(BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE, file.getBytes());
+			hdfsService.upload(BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE, file.getInputStream());
 			return true;
 		} catch (IOException ioe) {
 			return false;
