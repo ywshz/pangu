@@ -1,5 +1,24 @@
 package org.yws.pangu.job;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -8,19 +27,106 @@ import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.enums.EJobTriggerType;
-import org.yws.pangu.schedule.RunShellJob;
+import org.yws.pangu.service.HdfsService;
+import org.yws.pangu.service.impl.HdfsServiceImpl;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
-import java.io.*;
-import java.util.Date;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class ShellJob implements Job {
 	protected static final int MAX_STORE_LINES = 10000;
-	private static Logger logger = LoggerFactory.getLogger(RunShellJob.class);
+	private static Logger logger = LoggerFactory.getLogger(ShellJob.class);
+	private final String HIVE_HOME;
+	private final String HADOOP_HOME;
+	private final String WORK_FOLDER;
+	private final String BASE_UPLOAD_PATH;
+	private final String FILE_TYPE;
+	private HdfsService hdfsService = new HdfsServiceImpl();
+
+	public ShellJob() {
+		Properties props = new Properties();
+		try {
+			props.load(HiveJob.class.getResourceAsStream("/pangu-config.properties"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		HIVE_HOME = (String) props.get("HIVE_HOME");
+		HADOOP_HOME = (String) props.get("HADOOP_HOME");
+		WORK_FOLDER = (String) props.get("work.folder");
+		BASE_UPLOAD_PATH = (String) props.get("BASE_UPLOAD_PATH");
+		FILE_TYPE = (String) props.get("FILE_TYPE");
+	}
+
+	/**
+	 * mkdir and return the absolute path
+	 * 
+	 * @param historyId
+	 * @return
+	 */
+	private String createJobFolder(Long historyId) {
+		File folder = new File(WORK_FOLDER + File.separator + historyId.toString());
+		folder.mkdirs();
+		return folder.getAbsolutePath();
+	}
+
+	/**
+	 * download zip from HDFS and save to absPath
+	 * 
+	 * @param absPath
+	 *            target folder
+	 * @param jobId
+	 * @return return download file abspath
+	 */
+	private String downloadZip(String absPath, Integer jobId) {
+		String fileName = BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE;
+		String downloadFile = absPath + File.separator + fileName;
+		try {
+			FSDataInputStream in = hdfsService.read(fileName);
+			OutputStream dfo = new FileOutputStream(new File(downloadFile));
+			byte[] data = new byte[8 * 1024];
+			while (in.read(data) != -1) {
+				dfo.write(data);
+			}
+
+			dfo.close();
+			in.close();
+
+			return downloadFile;
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			return null;
+		}
+	}
+
+	private void unzipFile(String targetFolder, String downLoadFile) throws IOException {
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(downLoadFile));
+
+		ZipEntry ze = zis.getNextEntry();
+
+		byte[] buffer = new byte[1024];
+
+		while (ze != null) {
+
+			String fileName = ze.getName();
+			File newFile = new File(targetFolder + File.separator + fileName);
+
+			logger.info("file unzip : {} ", newFile.getAbsoluteFile());
+
+			FileOutputStream fos = new FileOutputStream(newFile);
+
+			int len;
+			while ((len = zis.read(buffer)) > 0) {
+				fos.write(buffer, 0, len);
+			}
+
+			fos.close();
+			ze = zis.getNextEntry();
+		}
+
+		zis.closeEntry();
+		zis.close();
+	}
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -29,14 +135,45 @@ public class ShellJob implements Job {
 
 		Integer jobId = Integer.valueOf(context.getJobDetail().getKey().getName());
 
+		JobHistory history = jobService.createJobHistory(jobId,
+				EJobTriggerType.AUTO_TRIGGER.getValue());
+
+		final Long HISTORY_ID = history.getId();
+
+		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
+				"Job start...\n"));
+		JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
+				JobExecutionMemoryHelper.RUNNING);
+
+		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("创建工作目录" + "\n");
+
+		String absPath = createJobFolder(HISTORY_ID);
+
+		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("检测是否需要下载资源包" + "\n");
+		if (hdfsService.isExist(BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE)) {
+			String downLoadFile = downloadZip(absPath, jobId);
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+					"资源包存在, 下载资源包至" + downLoadFile + "\n");
+			try {
+				unzipFile(absPath, downLoadFile);
+			} catch (IOException e) {
+				logger.error("UNZIP failed" + e.getMessage());
+			}
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("解压资源包成功\n");
+		} else {
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("无资源包,无需下载\n");
+		}
+
+		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("读取工作脚本:\n");
+
 		JobBean jobBean = jobService.getJob(jobId);
 
 		File file = null;
-        String script = null;
+		String script = null;
 		try {
 			script = jobBean.getScript();
 			script = DateRender.render(script);
-			file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
+			file = new File(absPath + File.separator + UUID.randomUUID().toString(), ".sh");
 			file.createNewFile();
 			file.setExecutable(true);
 			file.setReadable(true);
@@ -49,18 +186,11 @@ public class ShellJob implements Job {
 			return;
 		}
 
-		JobHistory history = jobService.createJobHistory(jobId,  EJobTriggerType.AUTO_TRIGGER.getValue());
-
-		final Long HISTORY_ID = history.getId();
-
 		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
-				"Job start...\n"));
-        JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
-                "Job script:\n"+script+"\n"));
-		JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
-				JobExecutionMemoryHelper.RUNNING);
+				"脚本:\n" + script + "\n"));
 
 		ProcessBuilder builder = new ProcessBuilder(file.getAbsolutePath());
+		builder.directory(new File(absPath));
 		logger.info(file.getAbsolutePath());
 		Process process = null;
 		try {

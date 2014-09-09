@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.LogOutputRedirector;
 import org.yws.pangu.utils.DateRender;
-
+@Deprecated
 public class RunShellJob implements Job {
 	private static Logger logger = LoggerFactory.getLogger(RunShellJob.class);
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.yws.pangu.domain.HdfsFile;
 
 /**
@@ -16,6 +17,8 @@ public interface HdfsService {
 	public boolean isFile(String path) throws IOException;
 
 	public String get(String fileName, int size) throws IOException;
+	
+	public FSDataInputStream read(String path) throws IOException;
 
 	public HdfsFile get(String fileName) throws IOException;
 

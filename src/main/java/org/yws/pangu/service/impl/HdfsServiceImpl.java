@@ -62,6 +62,16 @@ public class HdfsServiceImpl implements HdfsService {
 		return new String(bts);
 	}
 
+	@Override
+	public FSDataInputStream read(String path) throws IOException {
+		Path p = new Path(path);
+		if (hdfs.exists(p) && hdfs.isFile(p)) {
+			return hdfs.open(new Path(path));
+		} else {
+			return null;
+		}
+	}
+
 	// @Override
 	// public boolean delete(String path) throws IOException {
 	// // return hdfs.delete(new Path(path), true);
@@ -116,19 +126,19 @@ public class HdfsServiceImpl implements HdfsService {
 		fo.close();
 	}
 
-    @Override
-    public void upload(String path, InputStream in) throws IOException {
-        Path p = new Path(path);
-        if (hdfs.exists(p)) {
-            hdfs.delete(p, false);
-        }
+	@Override
+	public void upload(String path, InputStream in) throws IOException {
+		Path p = new Path(path);
+		if (hdfs.exists(p)) {
+			hdfs.delete(p, false);
+		}
 
-        FSDataOutputStream fo = hdfs.create(p);
+		FSDataOutputStream fo = hdfs.create(p);
 
-        IOUtils.copyBytes(in,fo,8*1024,true);
+		IOUtils.copyBytes(in, fo, 8 * 1024, true);
 
-        fo.close();
-    }
+		fo.close();
+	}
 
 	@Override
 	public boolean isExist(String path) {

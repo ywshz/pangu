@@ -1,5 +1,17 @@
 package org.yws.pangu.job;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Date;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -8,19 +20,17 @@ import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.domain.JobHistory;
 import org.yws.pangu.enums.EJobTriggerType;
-import org.yws.pangu.schedule.RunHiveJob;
 import org.yws.pangu.service.impl.JobServiceImpl;
 import org.yws.pangu.utils.DateRender;
 import org.yws.pangu.utils.JobExecutionMemoryHelper;
 
-import java.io.*;
-import java.util.Date;
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
+/**
+ * 
+ * 
+ * @author wangshu.yang / 2014年9月9日
+ */
 public class HiveJob implements Job {
-	private static Logger logger = LoggerFactory.getLogger(RunHiveJob.class);
+	private static Logger logger = LoggerFactory.getLogger(HiveJob.class);
 	private final String HIVE_HOME;
 	private final String HADOOP_HOME;
 	private final int MAX_STORE_LINES = 10000;
@@ -28,7 +38,7 @@ public class HiveJob implements Job {
 	public HiveJob() {
 		Properties props = new Properties();
 		try {
-			props.load(RunHiveJob.class.getResourceAsStream("/pangu-config.properties"));
+			props.load(HiveJob.class.getResourceAsStream("/pangu-config.properties"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -55,7 +65,7 @@ public class HiveJob implements Job {
 
 		// //////////////
 		File file = null;
-        String script = null;
+		String script = null;
 		try {
 			script = jobBean.getScript();
 			script = DateRender.render(script);
@@ -72,15 +82,16 @@ public class HiveJob implements Job {
 			return;
 		}
 		// ////////////
-		JobHistory history = jobService.createJobHistory(jobId, EJobTriggerType.AUTO_TRIGGER.getValue());
+		JobHistory history = jobService.createJobHistory(jobId,
+				EJobTriggerType.AUTO_TRIGGER.getValue());
 
 		final Long HISTORY_ID = history.getId();
 
 		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
 				"Job start...\n"));
 
-        JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
-                "Job script:\n"+script+"\n"));
+		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
+				"Job script:\n" + script + "\n"));
 
 		JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 				JobExecutionMemoryHelper.RUNNING);

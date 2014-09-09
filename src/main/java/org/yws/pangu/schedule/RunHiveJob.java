@@ -18,6 +18,12 @@ import org.slf4j.LoggerFactory;
 import org.yws.pangu.domain.LogOutputRedirector;
 import org.yws.pangu.utils.DateRender;
 
+/**
+ * Used in cli.
+ * 
+ * @author wangshu.yang / 2014年9月9日
+ */
+@Deprecated
 public class RunHiveJob implements Job {
 	private static Logger logger = LoggerFactory.getLogger(RunHiveJob.class);
 	private final String HIVE_HOME;

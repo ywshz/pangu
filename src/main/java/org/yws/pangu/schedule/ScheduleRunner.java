@@ -18,7 +18,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yws.pangu.utils.DateRender;
-
+@Deprecated
 public class ScheduleRunner {
 	private static Logger logger = LoggerFactory.getLogger(ScheduleRunner.class);
 	
