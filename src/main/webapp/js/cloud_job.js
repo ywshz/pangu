@@ -160,6 +160,9 @@ function initToolBar() {
         },
         'onUploadSuccess' : function(file, data, response) {  
             alert( file.name + ' 上传成功！ ');
+            $.post(BASE_PATH+"/upload/exist.do",{jobId:$("#viewing-job-input").val()},function(res){
+       		 $("#uploaded-rs-label").html(res);
+       	 	});
         }
     });
     
@@ -258,7 +261,7 @@ function initToolBar() {
     	 
     	 $.post(BASE_PATH+"/upload/exist.do",{jobId:$("#viewing-job-input").val()},function(res){
     		 $("#uploaded-rs-label").html(res);
-    	 })
+    	 });
     });
     
     $("#update-job-btn").click(function () {

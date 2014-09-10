@@ -80,7 +80,7 @@ public class ShellJob implements Job {
 	 */
 	private String downloadZip(String absPath, Integer jobId) {
 		String fileName = BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE;
-		String downloadFile = absPath + File.separator + fileName;
+		String downloadFile = absPath + File.separator + jobId + FILE_TYPE;
 		try {
 			FSDataInputStream in = hdfsService.read(fileName);
 			OutputStream dfo = new FileOutputStream(new File(downloadFile));
@@ -110,6 +110,15 @@ public class ShellJob implements Job {
 
 			String fileName = ze.getName();
 			File newFile = new File(targetFolder + File.separator + fileName);
+
+			if (ze.isDirectory()) {
+				newFile.mkdirs();
+				ze = zis.getNextEntry();
+				continue;
+			} else {
+				newFile.getParentFile().mkdirs();
+				newFile.createNewFile();
+			}
 
 			logger.info("file unzip : {} ", newFile.getAbsoluteFile());
 
@@ -173,7 +182,7 @@ public class ShellJob implements Job {
 		try {
 			script = jobBean.getScript();
 			script = DateRender.render(script);
-			file = new File(absPath + File.separator + UUID.randomUUID().toString(), ".sh");
+			file = new File(absPath + File.separator + UUID.randomUUID().toString() + ".sh");
 			file.createNewFile();
 			file.setExecutable(true);
 			file.setReadable(true);
@@ -186,8 +195,8 @@ public class ShellJob implements Job {
 			return;
 		}
 
-		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
-				"脚本:\n" + script + "\n"));
+		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer("脚本:\n"
+				+ script + "\n"));
 
 		ProcessBuilder builder = new ProcessBuilder(file.getAbsolutePath());
 		builder.directory(new File(absPath));

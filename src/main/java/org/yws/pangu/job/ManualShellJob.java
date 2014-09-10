@@ -42,7 +42,7 @@ public class ManualShellJob implements Job {
 		try {
 			String script = jobBean.getScript();
 			script = DateRender.render(script);
-			file = File.createTempFile(UUID.randomUUID().toString(), ".hive");
+			file = File.createTempFile(UUID.randomUUID().toString(), ".sh");
 			file.createNewFile();
 			file.setExecutable(true);
 			file.setReadable(true);
