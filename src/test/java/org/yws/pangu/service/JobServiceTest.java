@@ -51,6 +51,13 @@ public class JobServiceTest {
 			
 		}
 	}
+	
+	@Test
+	public void e() {
+		for(Integer id : jobService.getFailedJobs()){
+			System.out.println(id);
+		}
+	}
 
 	@Test
 	public void hisList1() {

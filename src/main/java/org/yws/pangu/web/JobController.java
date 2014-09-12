@@ -215,6 +215,11 @@ public class JobController {
 		return list;
 	}
 
+	@RequestMapping(value = "failedjobs.do")
+	public @ResponseBody List<Integer> failedjobs() {
+		return jobService.getFailedJobs();
+	}
+
 	@RequestMapping(value = "gethistorylog.do")
 	public @ResponseBody LogStatusWebBean gethistorylog(Long historyId) {
 		LogStatusWebBean wb;

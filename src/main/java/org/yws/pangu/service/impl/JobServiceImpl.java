@@ -1,6 +1,8 @@
 package org.yws.pangu.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +38,7 @@ public class JobServiceImpl {
 	public List<JobBean> jobList(Integer groupId) {
 		return jobDao.list(groupId);
 	}
-	
+
 	public List<JobBean> listAllJob() {
 		return jobDao.listAll();
 	}
@@ -232,9 +234,45 @@ public class JobServiceImpl {
 			if (his.getEndTime() == null) {
 				continue;
 			}
-			list.add(String.valueOf( (his.getEndTime().getTime() - his.getStartTime().getTime())/1000));
+			list.add(String
+					.valueOf((his.getEndTime().getTime() - his.getStartTime().getTime()) / 1000));
 		}
 
 		return list;
+	}
+
+	public List<Integer> getFailedJobs() {
+		List<JobHistory> jh = jobHistoryDao.list(DateUtils.getNDaysBeginTime(0), new Date());
+		Map<Integer, List<JobHistory>> map = new HashMap<Integer, List<JobHistory>>();
+
+		for (JobHistory his : jh) {
+
+			if (map.get(his.getJobId()) == null) {
+				List<JobHistory> list = new ArrayList<JobHistory>();
+				list.add(his);
+				map.put(his.getJobId(), list);
+			} else {
+				map.get(his.getJobId()).add(his);
+			}
+		}
+
+		List<Integer> result = new ArrayList<Integer>();
+		for (Integer jobId : map.keySet()) {
+			List<JobHistory> list = map.get(jobId);
+
+			Collections.sort(list, new Comparator<JobHistory>() {
+
+				@Override
+				public int compare(JobHistory o1, JobHistory o2) {
+					return o2.getEndTime().compareTo(o1.getEndTime());
+				}
+			});
+
+			if (list.get(0).getStatus().equals("FAILED")) {
+				result.add(jobId);
+			}
+		}
+
+		return result;
 	}
 }

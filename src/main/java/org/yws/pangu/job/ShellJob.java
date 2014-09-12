@@ -36,8 +36,6 @@ import org.yws.pangu.utils.JobExecutionMemoryHelper;
 public class ShellJob implements Job {
 	protected static final int MAX_STORE_LINES = 10000;
 	private static Logger logger = LoggerFactory.getLogger(ShellJob.class);
-	private final String HIVE_HOME;
-	private final String HADOOP_HOME;
 	private final String WORK_FOLDER;
 	private final String BASE_UPLOAD_PATH;
 	private final String FILE_TYPE;
@@ -51,8 +49,6 @@ public class ShellJob implements Job {
 			e.printStackTrace();
 		}
 
-		HIVE_HOME = (String) props.get("HIVE_HOME");
-		HADOOP_HOME = (String) props.get("HADOOP_HOME");
 		WORK_FOLDER = (String) props.get("work.folder");
 		BASE_UPLOAD_PATH = (String) props.get("BASE_UPLOAD_PATH");
 		FILE_TYPE = (String) props.get("FILE_TYPE");
@@ -78,25 +74,20 @@ public class ShellJob implements Job {
 	 * @param jobId
 	 * @return return download file abspath
 	 */
-	private String downloadZip(String absPath, Integer jobId) {
+	private String downloadZip(String absPath, Integer jobId) throws IOException {
 		String fileName = BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE;
 		String downloadFile = absPath + File.separator + jobId + FILE_TYPE;
-		try {
-			FSDataInputStream in = hdfsService.read(fileName);
-			OutputStream dfo = new FileOutputStream(new File(downloadFile));
-			byte[] data = new byte[8 * 1024];
-			while (in.read(data) != -1) {
-				dfo.write(data);
-			}
-
-			dfo.close();
-			in.close();
-
-			return downloadFile;
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			return null;
+		FSDataInputStream in = hdfsService.read(fileName);
+		OutputStream dfo = new FileOutputStream(new File(downloadFile));
+		byte[] data = new byte[8 * 1024];
+		while (in.read(data) != -1) {
+			dfo.write(data);
 		}
+
+		dfo.close();
+		in.close();
+
+		return downloadFile;
 	}
 
 	private void unzipFile(String targetFolder, String downLoadFile) throws IOException {
@@ -148,29 +139,54 @@ public class ShellJob implements Job {
 				EJobTriggerType.AUTO_TRIGGER.getValue());
 
 		final Long HISTORY_ID = history.getId();
-
+		
 		JobExecutionMemoryHelper.jobLogMemoryHelper.put(HISTORY_ID, new StringBuffer(
 				"Job start...\n"));
 		JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
 				JobExecutionMemoryHelper.RUNNING);
 
-		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("创建工作目录" + "\n");
+		String absPath = null;
+		try {
 
-		String absPath = createJobFolder(HISTORY_ID);
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("创建工作目录" + "\n");
 
-		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("检测是否需要下载资源包" + "\n");
-		if (hdfsService.isExist(BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE)) {
-			String downLoadFile = downloadZip(absPath, jobId);
-			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
-					"资源包存在, 下载资源包至" + downLoadFile + "\n");
-			try {
+			absPath = createJobFolder(HISTORY_ID);
+
+			context.put("WORK_FOLDER_PATH", absPath);
+			
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID)
+					.append("检测是否需要下载资源包" + "\n");
+			if (hdfsService.isExist(BASE_UPLOAD_PATH + "/" + jobId + FILE_TYPE)) {
+				String downLoadFile;
+
+				downLoadFile = downloadZip(absPath, jobId);
+
+				JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append(
+						"资源包存在, 下载资源包至" + downLoadFile + "\n");
 				unzipFile(absPath, downLoadFile);
-			} catch (IOException e) {
-				logger.error("UNZIP failed" + e.getMessage());
+				JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("解压资源包成功\n");
+			} else {
+				JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("无资源包,无需下载\n");
 			}
-			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("解压资源包成功\n");
-		} else {
-			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("无资源包,无需下载\n");
+
+		} catch (IOException e1) {
+			logger.error(e1.getMessage());
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("Job run FAILED \n");
+
+			history.setEndTime(new Date());
+			history.setLog(JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).toString());
+			history.setStatus(JobExecutionMemoryHelper.FAILED);
+			jobService.updateHistory(history);
+
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
+					JobExecutionMemoryHelper.FAILED);
+
+			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.FALSE);
+			
+			JobExecutionMemoryHelper.jobLogMemoryHelper.remove(HISTORY_ID);
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.remove(HISTORY_ID);
+			
+			return;
 		}
 
 		JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("读取工作脚本:\n");
@@ -182,7 +198,7 @@ public class ShellJob implements Job {
 		try {
 			script = jobBean.getScript();
 			script = DateRender.render(script);
-			file = new File(absPath + File.separator + UUID.randomUUID().toString() + ".sh");
+			file = new File(absPath + File.separator + UUID.randomUUID().toString() + ".bat");
 			file.createNewFile();
 			file.setExecutable(true);
 			file.setReadable(true);
@@ -192,6 +208,22 @@ public class ShellJob implements Job {
 			out.close();
 		} catch (IOException e) {
 			logger.error("Write File {} error", e.getMessage());
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("工作脚本读取失败: \n"+e.getMessage()+"\n");
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("Job run FAILED \n");
+
+			history.setEndTime(new Date());
+			history.setLog(JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).toString());
+			history.setStatus(JobExecutionMemoryHelper.FAILED);
+			jobService.updateHistory(history);
+
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
+					JobExecutionMemoryHelper.FAILED);
+
+			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.FALSE);
+			
+			JobExecutionMemoryHelper.jobLogMemoryHelper.remove(HISTORY_ID);
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.remove(HISTORY_ID);
+			
 			return;
 		}
 
@@ -206,6 +238,23 @@ public class ShellJob implements Job {
 			process = builder.start();
 		} catch (IOException e) {
 			logger.error(e.getLocalizedMessage());
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("任务进程启动失败:"+e.getMessage()+"/n");
+			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("Job run FAILED \n");
+
+			history.setEndTime(new Date());
+			history.setLog(JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).toString());
+			history.setStatus(JobExecutionMemoryHelper.FAILED);
+			jobService.updateHistory(history);
+
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.put(HISTORY_ID,
+					JobExecutionMemoryHelper.FAILED);
+
+			context.getJobDetail().getJobDataMap().put("RUN_SUCCESS", Boolean.FALSE);
+			
+			JobExecutionMemoryHelper.jobLogMemoryHelper.remove(HISTORY_ID);
+			JobExecutionMemoryHelper.jobStatusMemoryHelper.remove(HISTORY_ID);
+			
+			return;
 		}
 		final InputStream inputStream = process.getInputStream();
 		final InputStream errorStream = process.getErrorStream();

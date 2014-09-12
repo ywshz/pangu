@@ -9,6 +9,7 @@ function init() {
     $("#click-refresh-link").click(function(){
     	 refreshHistoryView($("#viewing-job-input").val());
     });
+    
 }
 
 function initLeftTree() {
@@ -31,7 +32,8 @@ function initLeftTree() {
             onClick: OnLeftClick,
             onRename: zTreeOnRename,
             onRemove: zTreeOnRemove,
-            beforeRemove: zTreeBeforeRemove
+            beforeRemove: zTreeBeforeRemove,
+            onExpand: zTreeOnExpand
         }
     });
 
@@ -53,6 +55,23 @@ function zTreeOnRename(event, treeId, treeNode, isCancel) {
 	$.post(BASE_PATH+"/jobs/updategroupname.do", {id:treeNode.id,name:treeNode.name},function(res){
 		if(res) alert("重命名成功.");
 		else alert("重命名失败，请刷新页面重试.");
+	});
+}
+
+function zTreeOnExpand(){
+	$.post(BASE_PATH+"/jobs/failedjobs.do",function(res){
+	   	 $.each(res, function (key, data) {
+	   		 var nodes = zTree.getNodesByParam("id", data);
+	   		 for (var i=0, l=nodes.length; i < l; i++) {
+	 		 	if(nodes[i].isParent==false){
+	 		 		zTree.setting.view.fontCss = {};
+	 		 		zTree.setting.view.fontCss["color"] = "red";
+	 		 		zTree.updateNode(nodes[i]);
+	 		 		zTree.setting.view.fontCss = {};
+	 		 		break;
+	 		 	}
+	 		 }
+	   	 });
 	});
 }
 

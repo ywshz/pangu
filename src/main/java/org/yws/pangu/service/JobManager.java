@@ -35,6 +35,7 @@ import org.yws.pangu.job.ManualHiveJob;
 import org.yws.pangu.job.ManualShellJob;
 import org.yws.pangu.job.ShellJob;
 import org.yws.pangu.job.listener.JobExcutedListener;
+import org.yws.pangu.job.listener.WorkFolderRemoveListener;
 import org.yws.pangu.service.impl.JobServiceImpl;
 
 @Service
@@ -54,7 +55,10 @@ public class JobManager {
 		this.scheduler = schedulerFactory.getScheduler();
 
 		JobExcutedListener lis = new JobExcutedListener(this);
+		WorkFolderRemoveListener wf = new WorkFolderRemoveListener();
+		
 		scheduler.getListenerManager().addJobListener(lis, allJobs());
+		scheduler.getListenerManager().addJobListener(wf, allJobs());
 
 		scheduler.getListenerManager().addJobListener(new JobListener() {
 
