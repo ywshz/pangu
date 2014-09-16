@@ -249,6 +249,7 @@ public class HiveJob implements Job {
 		builder.directory(new File(absPath));
 		builder.environment().put("HADOOP_HOME", HADOOP_HOME);
 		builder.environment().put("HIVE_HOME", HIVE_HOME);
+		
 		Process process = null;
 		try {
 			process = builder.start();

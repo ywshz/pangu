@@ -236,6 +236,7 @@ public class ShellJob implements Job {
 		Process process = null;
 		try {
 			process = builder.start();
+			JobExecutionMemoryHelper.shellJobProcess.put(HISTORY_ID, process);
 		} catch (IOException e) {
 			logger.error(e.getLocalizedMessage());
 			JobExecutionMemoryHelper.jobLogMemoryHelper.get(HISTORY_ID).append("任务进程启动失败:"+e.getMessage()+"/n");

@@ -90,6 +90,30 @@ function zTreeOnRemove(event, treeId, treeNode) {
 	});
 }
 
+function killJob(historyId){
+	type=$("#job-type-td").text().trim();
+	if(type=="hive"){
+		  $.post(BASE_PATH+"/jobs/killhive.do",{historyId:historyId},function(res){
+			  if(res==1){
+				  alert("取消成功");
+			  }else  if(res==2){
+				  alert("取消失败");
+			  }else  if(res==3){
+				  alert("任务已经结束");
+			  }else  if(res==4){
+				  alert("请稍后再取消,未能找到任务ID");
+			  }
+		  });
+	}else if(type=="shell"){
+		 $.post(BASE_PATH+"/jobs/killshell.do",{historyId:historyId},function(res){
+			 if(res){
+				  alert("取消成功");
+			  }else{
+				  alert("取消失败");
+			  }
+		  });
+	}
+}
 function refreshHistoryView(jobId) {
     $.post(BASE_PATH+"/jobs/history.do", { jobId: jobId}, function (data) {
         $("#history-tbody").html("");
@@ -99,7 +123,7 @@ function refreshHistoryView(jobId) {
             var td = "<tr><td>" + his.id + "</td><td>" + his.status + "</td><td>" + his.startTime + "</td><td>" + his.endTime + "</td><td>";
             td += '<button type="button" class="btn btn-default btn-xs" onclick="viewLog('+his.id+')">查看日志</button>';
             if (his.status == "RUNNING" ) {
-                td += ',<button type="button" class="btn btn-primary btn-xs">取消任务</button>';
+                td += ',<button type="button" class="btn btn-primary btn-xs" onclick="killJob('+his.id+')">取消任务</button>';
             }
             td += "</td></tr>"
             $("#history-tbody").append(td);

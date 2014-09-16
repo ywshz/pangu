@@ -1,5 +1,6 @@
 package org.yws.pangu.web;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -253,5 +254,55 @@ public class JobController {
 	@RequestMapping(value = "resumerun.do")
 	public @ResponseBody boolean resumerun(Integer jobId) {
 		return jobService.resumeRun(jobId);
+	}
+
+	/**
+	 * 
+	 * @param historyId
+	 * @return 1: kill successed; 2:kill failed; 3:The job is compeleted. 4:请稍后再取消
+	 */
+	@RequestMapping(value = "killhive.do")
+	public @ResponseBody int killhive(Long historyId) {
+		LogStatusWebBean wb = null;
+
+		Long neg = new Long(historyId * -1L);
+		if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId) != null) {
+			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(historyId).toString();
+			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(historyId);
+
+			wb = new LogStatusWebBean(status, log);
+		} else if (JobExecutionMemoryHelper.jobLogMemoryHelper.get(neg) != null) {
+			String log = JobExecutionMemoryHelper.jobLogMemoryHelper.get(neg).toString();
+			String status = JobExecutionMemoryHelper.jobStatusMemoryHelper.get(neg);
+
+			wb = new LogStatusWebBean(status, log);
+		} else {
+			return 3;
+		}
+
+		int start = wb.getLog().lastIndexOf("hadoop job  -kill job_");
+		if(start==-1){
+			return 4;
+		}
+		int end = wb.getLog().indexOf("\n", start);
+		String cmd = wb.getLog().substring(start, end);
+
+		try {
+			Runtime.getRuntime().exec(cmd);
+		} catch (IOException e) {
+			return 2;
+		}
+		return 1;
+	}
+
+	@RequestMapping(value = "killshell.do")
+	public @ResponseBody boolean killshell(Long historyId) {
+
+		try {
+			JobExecutionMemoryHelper.shellJobProcess.get(historyId).destroy();
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 }
