@@ -51,18 +51,42 @@
     <div class="row action-div">
 
         <div class="col-md-3">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="zTreeDemoBackground left">
-                        <ul id="tree" class="ztree">
-                        </ul>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="zTreeDemoBackground left">
+                                <ul id="tree" class="ztree">
+                                </ul>
+                            </div>
+                        </div>
+                        <div id="rMenu" class="btn-group-vertical">
+                            <button type="button" id="add-group-btn" class="btn btn-default">创建组</button>
+                            <button type="button" id="add-job-btn" class="btn btn-default">添加任务</button>
+                        </div>
                     </div>
                 </div>
-                <div id="rMenu" class="btn-group-vertical">
-                    <button type="button" id="add-group-btn" class="btn btn-default">创建组</button>
-                    <button type="button" id="add-job-btn" class="btn btn-default">添加任务</button>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input class="form-control" type="text" id="search-input" placeholder="输入关键词">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" id="search-link" type="button">搜!</button>
+                        </span>
+                    </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="list-group" id="search-result-ul">
+                    </ul>
+                </div>
+            </div>
+
         </div>
 
         <div class="col-md-9" id="right-content-div">
@@ -196,7 +220,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="scheduleInput" class="col-sm-2 control-label">依赖/定时</label>
+                        <label for="" class="col-sm-2 control-label">依赖/定时</label>
 
                         <div class="col-sm-10">
                             <div class="radio">
@@ -223,7 +247,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="inputPassword3" class="col-sm-2 control-label">脚本</label>
+                        <label for="" class="col-sm-2 control-label">脚本</label>
 
                         <div class="col-sm-10">
                         </div>
@@ -251,7 +275,7 @@
                 <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                 </button>
-                <h4 class="modal-title" id="editModalLabel">运行日志</h4>
+                <h4 class="modal-title" id="logModalLabel">运行日志</h4>
             </div>
             <div class="modal-body">
                 <div id="log-div" style='height:400px;overflow: auto;'>
@@ -275,13 +299,13 @@
                 <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                 </button>
-                <h4 class="modal-title" id="editModalLabel">资源上传</h4>
+                <h4 class="modal-title" id="">资源上传</h4>
             </div>
             <div class="modal-body">
                 <form role="form">
 					  <div class="form-group">
-					    <label for="exampleInputFile">资源文件</label>
-					    <input type="file" id="file-upiload-input">
+                          <label for="">资源文件</label>
+                          <input type="file" id="file-upiload-input">
 					    <p class="help-block">请上传zip格式文件,上传后会自动解压,每次上传都会删除老资源,文件最大为100M.</p>
 					  </div>
 					  <button type="button" class="btn btn-primary" id="do-upload-btn">上传</button>

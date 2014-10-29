@@ -9,6 +9,24 @@ function init() {
     $("#click-refresh-link").click(function(){
     	 refreshHistoryView($("#viewing-job-input").val());
     });
+
+    //搜索按钮
+    $("#search-link").click(function () {
+        if ($("#search-input").val().length < 2) {
+            alert("请至少输入2个字符");
+            return;
+        }
+        $.post(BASE_PATH + "/jobs/search.do", {key: $("#search-input").val()}, function (res) {
+            $("#search-result-ul").html("");
+            $.each(res, function (key, data) {
+                var line = "<li class='list-group-item'><a href='javascript:loadJob(" + data.id + ");'>" + data.name + "</a></li>"
+                $("#search-result-ul").append(line);
+            });
+            if (res.length == 0) {
+                $("#search-result-ul").append("无结果");
+            }
+        });
+    });
     
 }
 
@@ -59,6 +77,23 @@ function zTreeOnRename(event, treeId, treeNode, isCancel) {
 }
 
 function zTreeOnExpand(){
+
+    $.post(BASE_PATH + "/jobs/scheduledjobs.do", function (res) {
+        $.each(res, function (key, data) {
+            var nodes = zTree.getNodesByParam("id", data);
+            for (var i = 0, l = nodes.length; i < l; i++) {
+                if (nodes[i].isParent == false) {
+                    zTree.setting.view.fontCss = {};
+                    zTree.setting.view.fontCss["color"] = "green";
+                    zTree.updateNode(nodes[i]);
+                    zTree.setting.view.fontCss = {};
+                    break;
+                }
+            }
+        });
+    });
+
+
 	$.post(BASE_PATH+"/jobs/failedjobs.do",function(res){
 	   	 $.each(res, function (key, data) {
 	   		 var nodes = zTree.getNodesByParam("id", data);
@@ -458,13 +493,15 @@ function deleteJob(){
 
 function OnLeftClick(event, treeId, treeNode) {
     if (!treeNode.folder) {
-        freshJobView(treeNode.id);
-        refreshHistoryView(treeNode.id);
-        
-        $("#right-content-div").show();
+        loadJob(treeNode.id)
     }
 }
 
+function loadJob(jobId) {
+    freshJobView(jobId);
+    refreshHistoryView(jobId);
+    $("#right-content-div").show();
+}
 function freshJobView(jobId) {
     $.post(BASE_PATH+"/jobs/get.do", { id: jobId}, function (data) {
 
