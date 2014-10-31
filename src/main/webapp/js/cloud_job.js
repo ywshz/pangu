@@ -500,6 +500,7 @@ function OnLeftClick(event, treeId, treeNode) {
 function loadJob(jobId) {
     freshJobView(jobId);
     refreshHistoryView(jobId);
+    $("#right-content-div").removeClass("hidden");
     $("#right-content-div").show();
 }
 function freshJobView(jobId) {

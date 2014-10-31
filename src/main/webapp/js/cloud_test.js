@@ -183,7 +183,7 @@ function OnLeftClick(event, treeId, treeNode) {
             $("#run-btn").removeAttr("disabled");
             refreshHistoryView($("#editing-file-input").val());
         });
-        
+        $("#right-content-div").removeClass("hidden");
         $("#right-content-div").show();
     } else {
         resetToolBar();

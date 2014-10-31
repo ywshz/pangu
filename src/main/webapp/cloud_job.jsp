@@ -17,7 +17,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>盘古 -- 云调度</title>
+    <title>---</title>
 
     <link href="${path }/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="${path }/css/cloud_test.css" rel="stylesheet">
@@ -89,8 +89,8 @@
 
         </div>
 
-        <div class="col-md-9" id="right-content-div">
-            <div class="panel panel-default">
+        <div class="col-md-9 hidden" id="right-content-div">
+        <div class="panel panel-default">
                 <div class="panel-body">
 
                     <div>

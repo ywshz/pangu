@@ -66,8 +66,8 @@
             </div>
         </div>
 
-        <div class="col-md-9" id="right-content-div">
-            <div class="panel panel-default">
+        <div class="col-md-9 hidden" id="right-content-div">
+        <div class="panel panel-default">
                 <div class="panel-body">
 
                     <div>
