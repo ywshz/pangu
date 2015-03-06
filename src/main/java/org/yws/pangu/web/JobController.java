@@ -17,9 +17,7 @@ import org.yws.pangu.utils.JobExecutionMemoryHelper;
 import org.yws.pangu.web.webbean.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RequestMapping(value = "/jobs")
 @Controller
@@ -189,6 +187,59 @@ public class JobController {
         return rs;
     }
 
+    @RequestMapping(value = "dependency_info.do")
+    public
+    @ResponseBody
+    Object[] dependency_info(Integer id) {
+
+        Set<DependencyJobInfoWebBean> jobList = new HashSet<DependencyJobInfoWebBean>();
+        List<DependencyInfoWebBean> relations = new ArrayList<DependencyInfoWebBean>();
+
+        JobBean smallestJob = jobService.getJob(id);
+
+        if (EJobScheduleType.RUN_BY_DEPENDENCY.isEqual(smallestJob.getScheduleType())) {
+            getDependency(jobList, relations, smallestJob);
+        } else {
+            List<JobHistory> his = jobService.listJobHistory(smallestJob.getId());
+            if (!his.isEmpty()) {
+                jobList.add(
+                        new DependencyJobInfoWebBean(smallestJob.getId().toString(), smallestJob.getName(), DateUtils.format(his.get(0).getStartTime().getTime(), "yyyy-MM-dd HH:mm:ss"), "SUCCESS".equals(his.get(0).getStatus())));
+            }else{
+                jobList.add(
+                        new DependencyJobInfoWebBean(smallestJob.getId().toString(), smallestJob.getName(), "", false ));
+            }
+        }
+        return new Object[]{jobList, relations};
+    }
+
+    private void getDependency(Set<DependencyJobInfoWebBean> jobList, List<DependencyInfoWebBean> relations, JobBean job) {
+        List<JobHistory> his = jobService.listJobHistory(job.getId());
+        if (!his.isEmpty()) {
+            jobList.add(
+                    new DependencyJobInfoWebBean(job.getId().toString(), job.getName(), DateUtils.format(his.get(0).getStartTime().getTime(), "yyyy-MM-dd HH:mm:ss"), "SUCCESS".equals(his.get(0).getStatus())));
+        }else {
+            jobList.add(
+                    new DependencyJobInfoWebBean(job.getId().toString(), job.getName(), "", false));
+        }
+
+        for (String dependency : job.getDependencies().split(",")) {
+            JobBean dep = jobService.getJob(Integer.valueOf(dependency));
+            relations.add(new DependencyInfoWebBean(job.getId().toString(), dependency));
+
+            if (EJobScheduleType.RUN_BY_DEPENDENCY.isEqual(dep.getScheduleType())) {
+                getDependency(jobList, relations, dep);
+            }else{
+                List<JobHistory> dhis = jobService.listJobHistory(dep.getId());
+                if (!dhis.isEmpty()) {
+                    jobList.add(
+                            new DependencyJobInfoWebBean(dep.getId().toString(), dep.getName(), DateUtils.format(dhis.get(0).getStartTime().getTime(), "yyyy-MM-dd HH:mm:ss"), "SUCCESS".equals(his.get(0).getStatus())));
+                }else {
+                    jobList.add(
+                            new DependencyJobInfoWebBean(dep.getId().toString(), dep.getName(), "", false));
+                }
+            }
+        }
+    }
 
     @RequestMapping(value = "update.do")
     public

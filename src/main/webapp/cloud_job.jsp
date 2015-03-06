@@ -17,7 +17,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>---</title>
+    <title>任务调度</title>
 
     <link href="${path }/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="${path }/css/cloud_test.css" rel="stylesheet">
@@ -51,7 +51,6 @@
     <div class="row action-div">
 
         <div class="col-md-3">
-
             <div class="row">
                 <div class="col-md-12">
                     <div class="panel panel-default">
@@ -98,6 +97,10 @@
                             <div class="col-md-12">
                                 <button type="button" class="btn btn-primary" id="edit-btn">
                                     <span class=" "></span>编辑
+                                </button>
+
+                                <button type="button" class="btn btn-default" id="dependency-btn">
+                                    <span class=" "></span>依赖关系图
                                 </button>
 
                                 <button type="button" class="btn btn-default" id="manual-run-btn">
@@ -289,7 +292,20 @@
     </div>
 </div>
 
-
+<div class="modal fade" id="dependencyModal" tabindex="-1" role="dialog"
+     aria-labelledby="dependencyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg dependency-div" style="width: 80%;height: 80%">
+        <div class="modal-content">
+            <div class="modal-header">依赖图</div>
+            <div class="modal-body">
+                <canvas id="viewport" height="400"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade in" id="uploadModal" tabindex="-1" role="dialog"
      aria-labelledby="uploadModalLabel" aria-hidden="true">
@@ -342,6 +358,9 @@
 <script type="text/javascript" src="${path }/codemirror/lib/codemirror.js"></script>
 <script type="text/javascript" src="${path }/codemirror/mode/sql/sql.js"></script>
 <script type="text/javascript" src="${path }/uploadify/jquery.uploadify.min.js"></script>
+<script type="text/javascript" src="${path }/js/arbor.js"></script>
+<script type="text/javascript" src="${path }/js/arbor-tween.js"></script>
+<script type="text/javascript" src="${path }/js/arbor-graphics.js"></script>
 <script type="text/javascript" src="${path }/js/cloud_job.js"></script>
 
 </body>
