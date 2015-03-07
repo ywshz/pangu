@@ -292,21 +292,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="dependencyModal" tabindex="-1" role="dialog"
-     aria-labelledby="dependencyModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg dependency-div" style="width: 80%;height: 80%">
-        <div class="modal-content">
-            <div class="modal-header">依赖图</div>
-            <div class="modal-body">
-                <canvas id="viewport" height="400"></canvas>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal fade in" id="uploadModal" tabindex="-1" role="dialog"
      aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -341,7 +326,9 @@
 
 
 <!-- /.container -->
-
+<form action="${path }/dependency_map.jsp" target="_blank" id="dependency_map_form" method="post">
+    <input type="hidden" name="id" value="" id="dependency_view_job_id">
+</form>
 <input type="hidden" id="editing-file-input" value=""/>
 <input type="hidden" id="viewing-job-input" value=""/>
 <!-- Bootstrap core JavaScript
