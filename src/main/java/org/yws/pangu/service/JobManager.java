@@ -1,42 +1,23 @@
 package org.yws.pangu.service;
 
-import static org.quartz.CronScheduleBuilder.cronSchedule;
-import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.impl.matchers.EverythingMatcher.allJobs;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
-import org.quartz.CronTrigger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobKey;
-import org.quartz.JobListener;
-import org.quartz.Matcher;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.yws.pangu.domain.JobBean;
 import org.yws.pangu.enums.EJobScheduleType;
 import org.yws.pangu.enums.EJobType;
-import org.yws.pangu.job.HiveJob;
-import org.yws.pangu.job.ManualHiveJob;
-import org.yws.pangu.job.ManualShellJob;
-import org.yws.pangu.job.ShellJob;
+import org.yws.pangu.job.*;
 import org.yws.pangu.job.listener.JobExcutedListener;
 import org.yws.pangu.job.listener.WorkFolderRemoveListener;
 import org.yws.pangu.service.impl.JobServiceImpl;
+
+import javax.annotation.PostConstruct;
+import java.util.*;
+
+import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
+import static org.quartz.impl.matchers.EverythingMatcher.allJobs;
 
 @Service
 @DependsOn("schedulerFactory")
@@ -114,7 +95,10 @@ public class JobManager {
 			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
-			}
+			}else if (EJobType.PYTHON.getType().equals(jobBean.getRunType())) {
+                job = JobBuilder.newJob(PythonJob.class).withIdentity(jobBean.getId().toString())
+                        .build();
+            }
 
 			job.getJobDataMap().put("JobService", jobService);
 
@@ -154,7 +138,10 @@ public class JobManager {
 			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ShellJob.class).withIdentity(jobBean.getId().toString())
 						.build();
-			}
+			} else if (EJobType.PYTHON.getType().equals(jobBean.getRunType())) {
+                job = JobBuilder.newJob(PythonJob.class).withIdentity(jobBean.getId().toString())
+                        .build();
+            }
 
 			job.getJobDataMap().put("JobService", jobService);
 			job.getJobDataMap().put("NO_WAIT_JOB", Boolean.TRUE);
@@ -178,7 +165,9 @@ public class JobManager {
 
 			} else if (EJobType.SHELL.getType().equals(jobBean.getRunType())) {
 				job = JobBuilder.newJob(ManualShellJob.class).withIdentity(jobKeyId).build();
-			}
+			} else if (EJobType.PYTHON.getType().equals(jobBean.getRunType())) {
+                job = JobBuilder.newJob(ManualPythonJob.class).withIdentity(jobKeyId).build();
+            }
 
 			job.getJobDataMap().put("JobService", jobService);
 

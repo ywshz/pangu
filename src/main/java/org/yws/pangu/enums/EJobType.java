@@ -1,7 +1,7 @@
 package org.yws.pangu.enums;
 
 public enum EJobType {
-	SHELL("shell"), HIVE("hive");
+	SHELL("shell"), HIVE("hive"), PYTHON("python");
 
 	private String type;
 
