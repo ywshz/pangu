@@ -219,6 +219,7 @@
                             <select class="form-control" id="inputScheduleType">
                                 <option value="hive">Hive脚本</option>
                                 <option value="shell">Shell脚本</option>
+                                <option value="python">Python脚本</option>
                             </select>
                         </div>
                     </div>
