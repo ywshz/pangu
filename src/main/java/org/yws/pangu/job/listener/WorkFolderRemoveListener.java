@@ -9,8 +9,6 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yws.pangu.job.HiveJob;
-import org.yws.pangu.service.JobManager;
 
 public class WorkFolderRemoveListener implements JobListener {
 	private static Logger logger = LoggerFactory.getLogger(WorkFolderRemoveListener.class);
